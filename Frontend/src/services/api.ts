@@ -1,4 +1,4 @@
-const API_BASE_URL = 'http://localhost:3000';
+const API_BASE_URL = 'https://naissancechain-api.onrender.com';
 
 export const apiService = {
   /**
