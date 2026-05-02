@@ -1,6 +1,6 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-const API_URL = 'http://192.168.1.127:3000'; // Adresse IP locale de votre machine
+const API_URL = 'https://naissancechain-api.onrender.com';
 
 export interface User {
   id: string;

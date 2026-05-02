@@ -4,7 +4,7 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { uploadService } from './upload.service';
 
-const API_URL = 'http://192.168.1.127:3000';
+const API_URL = 'https://naissancechain-api.onrender.com';
 
 export interface CreateBirthData {
   // --- ENFANT ---
@@ -201,7 +201,7 @@ class BirthService {
         const uploadedPhotos: any = {};
         for (const photo of photosToUpload) {
           if (photo.uri && photo.uri.startsWith('file://')) {
-            const url = await uploadService.uploadBirthDocument(photo.uri, photo.key as any);
+            const url = await uploadService.uploadImage(photo.uri, photo.key as any);
             uploadedPhotos[photo.key] = url;
           } else {
             uploadedPhotos[photo.key] = photo.uri;
