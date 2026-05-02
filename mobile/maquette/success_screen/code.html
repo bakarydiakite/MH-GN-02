@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+
+<html class="light" lang="fr"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>NaissanceChain - Inscription Réussie</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                "on-tertiary-fixed-variant": "#304d39",
+                "on-secondary": "#ffffff",
+                "surface-container": "#e9f0ea",
+                "error-container": "#ffdad6",
+                "inverse-primary": "#59de9b",
+                "on-secondary-container": "#496758",
+                "surface-bright": "#f4fbf6",
+                "surface-tint": "#006d43",
+                "tertiary": "#47654f",
+                "on-secondary-fixed-variant": "#2f4d3f",
+                "on-tertiary-fixed": "#032110",
+                "on-primary-fixed": "#002111",
+                "on-background": "#161d1a",
+                "surface-container-high": "#e3eae5",
+                "outline-variant": "#bccabe",
+                "on-surface": "#161d1a",
+                "tertiary-container": "#7b9b83",
+                "on-secondary-fixed": "#022115",
+                "primary-fixed-dim": "#59de9b",
+                "secondary-container": "#c3e5d2",
+                "primary-fixed": "#78fbb6",
+                "on-surface-variant": "#3d4a41",
+                "surface-container-low": "#eff5f0",
+                "on-tertiary": "#ffffff",
+                "primary": "#006d43",
+                "tertiary-fixed-dim": "#adcfb4",
+                "surface-dim": "#d5dcd7",
+                "on-primary": "#ffffff",
+                "inverse-surface": "#2b322f",
+                "surface-variant": "#dde4df",
+                "secondary": "#466556",
+                "secondary-fixed": "#c8ead7",
+                "on-error-container": "#93000a",
+                "inverse-on-surface": "#ecf2ed",
+                "surface-container-lowest": "#ffffff",
+                "on-error": "#ffffff",
+                "error": "#ba1a1a",
+                "on-primary-fixed-variant": "#005232",
+                "on-tertiary-container": "#153220",
+                "secondary-fixed-dim": "#adcebc",
+                "tertiary-fixed": "#c9ebcf",
+                "on-primary-container": "#00331d",
+                "surface-container-highest": "#dde4df",
+                "surface": "#f4fbf6",
+                "outline": "#6d7a70",
+                "background": "#f4fbf6",
+                "primary-container": "#00a86b"
+            },
+            "borderRadius": {
+                "DEFAULT": "0.125rem",
+                "lg": "0.25rem",
+                "xl": "0.5rem",
+                "full": "0.75rem"
+            },
+            "fontFamily": {
+                "headline": ["Manrope"],
+                "body": ["Manrope"],
+                "label": ["Manrope"]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        body { font-family: 'Manrope', sans-serif; }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .success-glow {
+            background: radial-gradient(circle at center, rgba(0, 168, 107, 0.15) 0%, transparent 70%);
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-surface text-on-surface min-h-screen flex flex-col">
+<!-- TopAppBar -->
+<header class="w-full sticky top-0 z-50 bg-[#f7f9fb]/90 backdrop-blur-xl shadow-sm flex justify-between items-center px-6 py-4">
+<div class="text-emerald-900 font-extrabold tracking-tighter text-lg">
+            NaissanceChain
+        </div>
+<div class="flex items-center gap-4">
+<button class="p-2 rounded-full hover:bg-emerald-50 transition-colors text-emerald-800 active:scale-95 duration-200">
+<span class="material-symbols-outlined" data-icon="notifications">notifications</span>
+</button>
+</div>
+</header>
+<main class="flex-grow flex items-center justify-center p-6 sm:p-12">
+<div class="max-w-xl w-full">
+<!-- Success Content -->
+<div class="text-center relative">
+<!-- Decorative Glow Background -->
+<div class="absolute inset-0 -z-10 success-glow scale-150"></div>
+<!-- Success Illustration Area -->
+<div class="mb-10 flex justify-center">
+<div class="relative">
+<div class="w-32 h-32 rounded-full bg-secondary-container flex items-center justify-center">
+<span class="material-symbols-outlined text-primary text-6xl" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+</div>
+<!-- Floating Tonal Element -->
+<div class="absolute -top-4 -right-4 w-12 h-12 rounded-full bg-primary-fixed/30 backdrop-blur-sm flex items-center justify-center">
+<span class="material-symbols-outlined text-primary-container text-2xl">verified</span>
+</div>
+</div>
+</div>
+<div class="space-y-4">
+<div class="flex flex-col items-center gap-2">
+<span class="bg-primary-container text-white px-4 py-1 rounded-full text-xs font-bold tracking-widest uppercase">
+                            Succès
+                        </span>
+<h1 class="text-4xl font-extrabold tracking-tight text-on-surface font-headline">Enregistrement Validé</h1>
+</div>
+<p class="text-on-surface-variant text-lg max-w-md mx-auto leading-relaxed">
+                        L'acte de naissance a été inscrit avec succès sur le registre numérique souverain de la République.
+                    </p>
+</div>
+<!-- Bento-style Info Card -->
+<div class="mt-12 bg-surface-container-lowest p-8 rounded-[2rem] shadow-[0_12px_32px_-4px_rgba(22,29,26,0.08)] border border-outline-variant/10">
+<div class="flex flex-col md:flex-row justify-between items-center gap-6">
+<div class="text-left space-y-1">
+<span class="text-[11px] font-bold uppercase tracking-widest text-outline">Identifiant Unique</span>
+<div class="text-2xl font-mono font-bold text-primary flex items-center gap-3">
+                                GN-2024-883921
+                                <button class="text-primary-container hover:bg-emerald-50 p-1.5 rounded-xl transition-all">
+<span class="material-symbols-outlined text-xl">content_copy</span>
+</button>
+</div>
+</div>
+<div class="flex items-center gap-2 bg-secondary-container/50 px-4 py-2 rounded-xl">
+<span class="w-2 h-2 rounded-full bg-primary"></span>
+<span class="text-sm font-bold text-on-secondary-container">Synchronisé</span>
+</div>
+</div>
+<!-- Asymmetric Graphic Divider -->
+<div class="h-px w-full bg-surface-variant my-8"></div>
+<div class="grid grid-cols-2 gap-8 text-left">
+<div>
+<span class="text-[11px] font-bold uppercase tracking-widest text-outline block mb-1">Date d'émission</span>
+<p class="font-bold text-on-surface">24 Mai 2024</p>
+</div>
+<div>
+<span class="text-[11px] font-bold uppercase tracking-widest text-outline block mb-1">Type de Document</span>
+<p class="font-bold text-on-surface">Acte Sécurisé</p>
+</div>
+</div>
+</div>
+<!-- Primary Actions -->
+<div class="mt-12 flex flex-col sm:flex-row items-center justify-center gap-4">
+<button class="w-full sm:w-auto px-8 py-4 bg-gradient-to-br from-primary to-primary-container text-white rounded-xl font-bold shadow-lg shadow-primary/20 hover:scale-105 active:scale-95 transition-all flex items-center justify-center gap-3">
+<span class="material-symbols-outlined">description</span>
+                        Voir la preuve
+                    </button>
+<button class="w-full sm:w-auto px-8 py-4 text-primary font-bold hover:bg-emerald-50 rounded-xl transition-all flex items-center justify-center gap-3">
+<span class="material-symbols-outlined">home</span>
+                        Retour à l'accueil
+                    </button>
+</div>
+</div>
+</div>
+</main>
+<!-- Footer Security Banner -->
+<footer class="p-8 mb-20 md:mb-0">
+<div class="max-w-4xl mx-auto flex flex-col md:flex-row items-center justify-center gap-8 opacity-60 grayscale hover:grayscale-0 transition-all">
+<div class="flex items-center gap-4">
+<div class="w-8 h-8 rounded-lg bg-surface-variant flex items-center justify-center">
+<span class="material-symbols-outlined text-sm">security</span>
+</div>
+<span class="text-xs font-semibold tracking-wide">CRYPTOGRAPHIE SOUVERAINE</span>
+</div>
+<div class="flex items-center gap-4">
+<div class="w-8 h-8 rounded-lg bg-surface-variant flex items-center justify-center">
+<span class="material-symbols-outlined text-sm">database</span>
+</div>
+<span class="text-xs font-semibold tracking-wide">GRAND LIVRE NATIONAL</span>
+</div>
+</div>
+</footer>
+<!-- BottomNavBar (Mobile Only) -->
+<nav class="md:hidden fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-4 pb-8 pt-4 bg-white/85 backdrop-blur-2xl shadow-[0_-12px_32px_rgba(0,52,109,0.04)] rounded-t-[2rem]">
+<div class="flex flex-col items-center justify-center text-slate-400 px-5 py-2.5 hover:bg-emerald-50">
+<span class="material-symbols-outlined" data-icon="home">home</span>
+<span class="font-manrope text-[11px] font-semibold uppercase tracking-widest mt-1">Accueil</span>
+</div>
+<div class="flex flex-col items-center justify-center text-slate-400 px-5 py-2.5 hover:bg-emerald-50">
+<span class="material-symbols-outlined" data-icon="family_restroom">family_restroom</span>
+<span class="font-manrope text-[11px] font-semibold uppercase tracking-widest mt-1">Famille</span>
+</div>
+<div class="flex flex-col items-center justify-center text-slate-400 px-5 py-2.5 hover:bg-emerald-50">
+<span class="material-symbols-outlined" data-icon="grid_view">grid_view</span>
+<span class="font-manrope text-[11px] font-semibold uppercase tracking-widest mt-1">Services</span>
+</div>
+<div class="flex flex-col items-center justify-center bg-emerald-100/80 text-emerald-900 rounded-2xl px-5 py-2.5 transition-all">
+<span class="material-symbols-outlined" data-icon="person">person</span>
+<span class="font-manrope text-[11px] font-semibold uppercase tracking-widest mt-1">Profil</span>
+</div>
+</nav>
+</body></html>

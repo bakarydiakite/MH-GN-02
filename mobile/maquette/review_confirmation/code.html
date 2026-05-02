@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+
+<html class="light" lang="fr"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>NaissanceChain - Confirmation d'Enregistrement</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@200;300;400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "on-tertiary-fixed-variant": "#304d39",
+                    "on-secondary": "#ffffff",
+                    "surface-container": "#e9f0ea",
+                    "error-container": "#ffdad6",
+                    "inverse-primary": "#59de9b",
+                    "on-secondary-container": "#496758",
+                    "surface-bright": "#f4fbf6",
+                    "surface-tint": "#006d43",
+                    "tertiary": "#47654f",
+                    "on-secondary-fixed-variant": "#2f4d3f",
+                    "on-tertiary-fixed": "#032110",
+                    "on-primary-fixed": "#002111",
+                    "on-background": "#161d1a",
+                    "surface-container-high": "#e3eae5",
+                    "outline-variant": "#bccabe",
+                    "on-surface": "#161d1a",
+                    "tertiary-container": "#7b9b83",
+                    "on-secondary-fixed": "#022115",
+                    "primary-fixed-dim": "#59de9b",
+                    "secondary-container": "#c3e5d2",
+                    "primary-fixed": "#78fbb6",
+                    "on-surface-variant": "#3d4a41",
+                    "surface-container-low": "#eff5f0",
+                    "on-tertiary": "#ffffff",
+                    "primary": "#006d43",
+                    "tertiary-fixed-dim": "#adcfb4",
+                    "surface-dim": "#d5dcd7",
+                    "on-primary": "#ffffff",
+                    "inverse-surface": "#2b322f",
+                    "surface-variant": "#dde4df",
+                    "secondary": "#466556",
+                    "secondary-fixed": "#c8ead7",
+                    "on-error-container": "#93000a",
+                    "inverse-on-surface": "#ecf2ed",
+                    "surface-container-lowest": "#ffffff",
+                    "on-error": "#ffffff",
+                    "error": "#ba1a1a",
+                    "on-primary-fixed-variant": "#005232",
+                    "on-tertiary-container": "#153220",
+                    "secondary-fixed-dim": "#adcebc",
+                    "tertiary-fixed": "#c9ebcf",
+                    "on-primary-container": "#00331d",
+                    "surface-container-highest": "#dde4df",
+                    "surface": "#f4fbf6",
+                    "outline": "#6d7a70",
+                    "background": "#f4fbf6",
+                    "primary-container": "#00a86b"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.125rem",
+                    "lg": "0.25rem",
+                    "xl": "0.5rem",
+                    "full": "0.75rem"
+            },
+            "fontFamily": {
+                    "headline": ["Manrope"],
+                    "body": ["Manrope"],
+                    "label": ["Manrope"]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        body { font-family: 'Manrope', sans-serif; }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-surface text-on-surface antialiased min-h-screen">
+<!-- TopAppBar -->
+<header class="w-full sticky top-0 z-50 bg-[#f7f9fb]/90 backdrop-blur-xl shadow-sm flex justify-between items-center px-6 py-4">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-primary-container" style="font-variation-settings: 'FILL' 1;">shield_with_heart</span>
+<h1 class="text-emerald-900 font-extrabold tracking-tighter text-lg">NaissanceChain</h1>
+</div>
+<div class="flex items-center gap-4">
+<button class="p-2 text-slate-500 hover:bg-emerald-50 transition-colors rounded-full active:scale-95 duration-200">
+<span class="material-symbols-outlined">notifications</span>
+</button>
+</div>
+</header>
+<main class="max-w-4xl mx-auto px-6 py-12 pb-32">
+<!-- Progress Indicator -->
+<div class="flex items-center gap-4 mb-12">
+<div class="flex-1 h-1.5 rounded-full bg-primary-container"></div>
+<div class="flex-1 h-1.5 rounded-full bg-primary-container"></div>
+<div class="flex-1 h-1.5 rounded-full bg-primary-container shadow-[0_0_12px_rgba(0,168,107,0.3)]"></div>
+</div>
+<section class="mb-10">
+<h2 class="text-4xl font-extrabold tracking-tight text-on-surface mb-2">Récapitulatif de l'enregistrement</h2>
+<p class="text-on-surface-variant text-lg">Veuillez vérifier les informations ci-dessous avant la validation finale par l'officier d'état civil.</p>
+</section>
+<!-- Bento Grid Layout for Summary -->
+<div class="grid grid-cols-1 md:grid-cols-12 gap-6">
+<!-- Child Information Card -->
+<div class="md:col-span-8 bg-surface-container-lowest rounded-[1.5rem] p-8 shadow-[0_12px_32px_-4px_rgba(22,29,26,0.04)]">
+<div class="flex justify-between items-start mb-8">
+<div>
+<span class="text-xs font-bold uppercase tracking-widest text-primary mb-1 block">Identité du Nouveau-né</span>
+<h3 class="text-2xl font-bold">Mamadou Sylla</h3>
+</div>
+<button class="p-3 bg-surface-container-low text-primary rounded-xl hover:bg-surface-container-highest transition-all active:scale-90">
+<span class="material-symbols-outlined">edit</span>
+</button>
+</div>
+<div class="grid grid-cols-1 sm:grid-cols-2 gap-8">
+<div>
+<p class="text-xs font-bold uppercase tracking-widest text-on-surface-variant/60 mb-1">Date de naissance</p>
+<p class="text-lg font-semibold">14 Octobre 2023</p>
+</div>
+<div>
+<p class="text-xs font-bold uppercase tracking-widest text-on-surface-variant/60 mb-1">Heure</p>
+<p class="text-lg font-semibold">08:45 AM</p>
+</div>
+<div>
+<p class="text-xs font-bold uppercase tracking-widest text-on-surface-variant/60 mb-1">Lieu</p>
+<p class="text-lg font-semibold">Hôpital National Ignace Deen</p>
+</div>
+<div>
+<p class="text-xs font-bold uppercase tracking-widest text-on-surface-variant/60 mb-1">Sexe</p>
+<p class="text-lg font-semibold">Masculin</p>
+</div>
+</div>
+</div>
+<!-- Profile Image / Badge Placeholder -->
+<div class="md:col-span-4 bg-primary-container rounded-[1.5rem] p-8 flex flex-col justify-between text-white relative overflow-hidden shadow-[0_12px_32px_-4px_rgba(0,109,67,0.15)]">
+<div class="relative z-10">
+<span class="material-symbols-outlined text-4xl opacity-80" style="font-variation-settings: 'FILL' 1;">verified_user</span>
+<h4 class="mt-4 text-xl font-bold leading-tight">Authentification Souveraine</h4>
+<p class="mt-2 text-sm text-emerald-50/80">Données sécurisées sur le registre national guinéen.</p>
+</div>
+<div class="absolute -right-8 -bottom-8 opacity-10">
+<span class="material-symbols-outlined text-[120px]">fingerprint</span>
+</div>
+</div>
+<!-- Father Info -->
+<div class="md:col-span-6 bg-surface-container-low rounded-[1.5rem] p-8 border border-outline-variant/10">
+<div class="flex justify-between items-center mb-6">
+<h3 class="text-xl font-bold flex items-center gap-3">
+<span class="material-symbols-outlined text-primary">person</span>
+                        Le Père
+                    </h3>
+<button class="p-2 text-on-surface-variant hover:text-primary transition-colors">
+<span class="material-symbols-outlined">edit</span>
+</button>
+</div>
+<div class="space-y-4">
+<div>
+<p class="text-xs font-bold uppercase tracking-widest text-on-surface-variant/60">Nom complet</p>
+<p class="font-semibold text-lg">Amadou Sylla</p>
+</div>
+<div>
+<p class="text-xs font-bold uppercase tracking-widest text-on-surface-variant/60">Profession</p>
+<p class="font-semibold">Ingénieur Agronome</p>
+</div>
+</div>
+</div>
+<!-- Mother Info -->
+<div class="md:col-span-6 bg-surface-container-low rounded-[1.5rem] p-8 border border-outline-variant/10">
+<div class="flex justify-between items-center mb-6">
+<h3 class="text-xl font-bold flex items-center gap-3">
+<span class="material-symbols-outlined text-primary">person_2</span>
+                        La Mère
+                    </h3>
+<button class="p-2 text-on-surface-variant hover:text-primary transition-colors">
+<span class="material-symbols-outlined">edit</span>
+</button>
+</div>
+<div class="space-y-4">
+<div>
+<p class="text-xs font-bold uppercase tracking-widest text-on-surface-variant/60">Nom complet</p>
+<p class="font-semibold text-lg">Mariama Barry</p>
+</div>
+<div>
+<p class="text-xs font-bold uppercase tracking-widest text-on-surface-variant/60">Profession</p>
+<p class="font-semibold">Enseignante</p>
+</div>
+</div>
+</div>
+<!-- Witness & Declaration Section -->
+<div class="md:col-span-12 bg-white/50 backdrop-blur-md rounded-[1.5rem] p-8 border-2 border-emerald-50/50">
+<div class="flex flex-col md:flex-row md:items-center justify-between gap-6">
+<div class="flex gap-4">
+<div class="w-12 h-12 rounded-full bg-emerald-50 flex items-center justify-center text-primary shrink-0">
+<span class="material-symbols-outlined">history_edu</span>
+</div>
+<div>
+<h4 class="font-bold text-lg">Déclaration de conformité</h4>
+<p class="text-on-surface-variant text-sm">En confirmant, vous attestez de l'exactitude des informations fournies conformément à la loi en vigueur.</p>
+</div>
+</div>
+<div class="flex items-center gap-3">
+<input class="w-6 h-6 rounded-lg text-primary focus:ring-primary border-outline-variant bg-surface-container-lowest" id="consent" type="checkbox"/>
+<label class="text-sm font-semibold cursor-pointer" for="consent">Je certifie l'exactitude</label>
+</div>
+</div>
+</div>
+</div>
+<!-- Action Button Container -->
+<div class="mt-12 flex flex-col md:flex-row gap-4 items-center justify-center">
+<button class="w-full md:w-auto px-8 py-5 bg-gradient-to-br from-primary to-primary-container text-white text-lg font-bold rounded-2xl shadow-[0_16px_32px_rgba(0,109,67,0.25)] hover:shadow-[0_20px_40px_rgba(0,109,67,0.35)] transition-all active:scale-95 flex items-center justify-center gap-3">
+<span>Confirmer l'enregistrement</span>
+<span class="material-symbols-outlined">arrow_forward</span>
+</button>
+<button class="w-full md:w-auto px-8 py-5 bg-transparent text-primary font-bold hover:bg-emerald-50 transition-colors rounded-2xl">
+                Annuler
+            </button>
+</div>
+</main>
+<!-- BottomNavBar -->
+<nav class="fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-4 pb-8 pt-4 bg-white/85 backdrop-blur-2xl shadow-[0_-12px_32px_rgba(0,52,109,0.04)] rounded-t-[2rem]">
+<a class="flex flex-col items-center justify-center text-slate-400 px-5 py-2.5 hover:bg-emerald-50 transition-all active:scale-90" href="#">
+<span class="material-symbols-outlined">home</span>
+<span class="font-manrope text-[11px] font-semibold uppercase tracking-widest mt-1">Accueil</span>
+</a>
+<a class="flex flex-col items-center justify-center bg-emerald-100/80 text-emerald-900 rounded-2xl px-5 py-2.5 transition-all active:scale-90" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">family_restroom</span>
+<span class="font-manrope text-[11px] font-semibold uppercase tracking-widest mt-1">Famille</span>
+</a>
+<a class="flex flex-col items-center justify-center text-slate-400 px-5 py-2.5 hover:bg-emerald-50 transition-all active:scale-90" href="#">
+<span class="material-symbols-outlined">grid_view</span>
+<span class="font-manrope text-[11px] font-semibold uppercase tracking-widest mt-1">Services</span>
+</a>
+<a class="flex flex-col items-center justify-center text-slate-400 px-5 py-2.5 hover:bg-emerald-50 transition-all active:scale-90" href="#">
+<span class="material-symbols-outlined">person</span>
+<span class="font-manrope text-[11px] font-semibold uppercase tracking-widest mt-1">Profil</span>
+</a>
+</nav>
+</body></html>

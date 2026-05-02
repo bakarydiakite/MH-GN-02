@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+
+<html class="light" lang="fr"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Suivi de Dossier | NaissanceChain</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "on-tertiary-fixed-variant": "#304d39",
+                    "on-secondary": "#ffffff",
+                    "surface-container": "#e9f0ea",
+                    "error-container": "#ffdad6",
+                    "inverse-primary": "#59de9b",
+                    "on-secondary-container": "#496758",
+                    "surface-bright": "#f4fbf6",
+                    "surface-tint": "#006d43",
+                    "tertiary": "#47654f",
+                    "on-secondary-fixed-variant": "#2f4d3f",
+                    "on-tertiary-fixed": "#032110",
+                    "on-primary-fixed": "#002111",
+                    "on-background": "#161d1a",
+                    "surface-container-high": "#e3eae5",
+                    "outline-variant": "#bccabe",
+                    "on-surface": "#161d1a",
+                    "tertiary-container": "#7b9b83",
+                    "on-secondary-fixed": "#022115",
+                    "primary-fixed-dim": "#59de9b",
+                    "secondary-container": "#c3e5d2",
+                    "primary-fixed": "#78fbb6",
+                    "on-surface-variant": "#3d4a41",
+                    "surface-container-low": "#eff5f0",
+                    "on-tertiary": "#ffffff",
+                    "primary": "#006d43",
+                    "tertiary-fixed-dim": "#adcfb4",
+                    "surface-dim": "#d5dcd7",
+                    "on-primary": "#ffffff",
+                    "inverse-surface": "#2b322f",
+                    "surface-variant": "#dde4df",
+                    "secondary": "#466556",
+                    "secondary-fixed": "#c8ead7",
+                    "on-error-container": "#93000a",
+                    "inverse-on-surface": "#ecf2ed",
+                    "surface-container-lowest": "#ffffff",
+                    "on-error": "#ffffff",
+                    "error": "#ba1a1a",
+                    "on-primary-fixed-variant": "#005232",
+                    "on-tertiary-container": "#153220",
+                    "secondary-fixed-dim": "#adcebc",
+                    "tertiary-fixed": "#c9ebcf",
+                    "on-primary-container": "#00331d",
+                    "surface-container-highest": "#dde4df",
+                    "surface": "#f4fbf6",
+                    "outline": "#6d7a70",
+                    "background": "#f4fbf6",
+                    "primary-container": "#00a86b"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.125rem",
+                    "lg": "0.25rem",
+                    "xl": "0.5rem",
+                    "full": "0.75rem"
+            },
+            "fontFamily": {
+                    "headline": ["Manrope"],
+                    "body": ["Manrope"],
+                    "label": ["Manrope"]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        body { font-family: 'Manrope', sans-serif; }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-surface text-on-surface min-h-screen pb-32">
+<!-- TopAppBar -->
+<header class="w-full sticky top-0 z-50 bg-[#f7f9fb]/90 backdrop-blur-xl shadow-sm flex justify-between items-center px-6 py-4 w-full">
+<div class="flex items-center gap-3">
+<span class="text-emerald-900 font-extrabold tracking-tighter text-xl">NaissanceChain</span>
+</div>
+<div class="flex items-center gap-4">
+<button class="p-2 rounded-full hover:bg-emerald-50 transition-colors text-emerald-800 active:scale-95 duration-200">
+<span class="material-symbols-outlined" data-icon="notifications">notifications</span>
+</button>
+</div>
+</header>
+<main class="max-w-xl mx-auto px-6 pt-8">
+<!-- Hero Header -->
+<section class="mb-10 text-center">
+<div class="inline-flex items-center justify-center w-16 h-16 bg-primary-container/20 rounded-full mb-4">
+<span class="material-symbols-outlined text-primary text-3xl" data-icon="clinical_notes">clinical_notes</span>
+</div>
+<h1 class="text-2xl font-bold tracking-tight text-on-surface mb-2">Suivi du Dossier</h1>
+<p class="text-on-surface-variant body-md">Dossier n° #GN-2024-8842</p>
+</section>
+<!-- Status Timeline: Bento-ish Layout -->
+<section class="space-y-4">
+<!-- Step 1: Completed -->
+<div class="bg-surface-container-lowest p-6 rounded-xl flex items-start gap-5 shadow-sm transition-all hover:bg-surface-container-low">
+<div class="flex flex-col items-center">
+<div class="w-10 h-10 rounded-full bg-primary flex items-center justify-center text-white">
+<span class="material-symbols-outlined" data-icon="check" style="font-variation-settings: 'FILL' 0;">check</span>
+</div>
+<div class="w-0.5 h-12 bg-primary/20 mt-1"></div>
+</div>
+<div class="pt-1">
+<h3 class="font-bold text-on-surface leading-tight">Demande soumise</h3>
+<p class="text-sm text-on-surface-variant mt-1">Soumis le 12 Octobre 2023</p>
+<span class="mt-2 inline-block px-2.5 py-0.5 bg-secondary-container text-on-secondary-container text-[10px] font-bold uppercase tracking-widest rounded-full">Terminé</span>
+</div>
+</div>
+<!-- Step 2: Completed -->
+<div class="bg-surface-container-lowest p-6 rounded-xl flex items-start gap-5 shadow-sm transition-all hover:bg-surface-container-low">
+<div class="flex flex-col items-center">
+<div class="w-10 h-10 rounded-full bg-primary flex items-center justify-center text-white">
+<span class="material-symbols-outlined" data-icon="check">check</span>
+</div>
+<div class="w-0.5 h-12 bg-primary/20 mt-1"></div>
+</div>
+<div class="pt-1">
+<h3 class="font-bold text-on-surface leading-tight">Validation agent</h3>
+<p class="text-sm text-on-surface-variant mt-1">Validé par l'Officier de l'État Civil</p>
+<span class="mt-2 inline-block px-2.5 py-0.5 bg-secondary-container text-on-secondary-container text-[10px] font-bold uppercase tracking-widest rounded-full">Terminé</span>
+</div>
+</div>
+<!-- Step 3: Active -->
+<div class="bg-primary/5 p-6 rounded-xl flex items-start gap-5 shadow-sm ring-1 ring-primary/10 transition-all">
+<div class="flex flex-col items-center">
+<div class="w-10 h-10 rounded-full bg-primary-container text-on-primary-container flex items-center justify-center ring-4 ring-primary-container/20">
+<span class="material-symbols-outlined" data-icon="history_edu">history_edu</span>
+</div>
+<div class="w-0.5 h-12 bg-primary/20 mt-1"></div>
+</div>
+<div class="pt-1">
+<h3 class="font-bold text-primary leading-tight">Enregistrement registre</h3>
+<p class="text-sm text-on-primary-fixed-variant mt-1">Signature officielle en cours au bureau de Conakry</p>
+<span class="mt-2 inline-block px-2.5 py-0.5 bg-primary text-white text-[10px] font-bold uppercase tracking-widest rounded-full">En cours</span>
+</div>
+</div>
+<!-- Step 4: Pending -->
+<div class="bg-surface-container-lowest/50 p-6 rounded-xl flex items-start gap-5 opacity-60">
+<div class="flex flex-col items-center">
+<div class="w-10 h-10 rounded-full bg-surface-variant text-on-surface-variant flex items-center justify-center">
+<span class="material-symbols-outlined" data-icon="card_membership">card_membership</span>
+</div>
+</div>
+<div class="pt-1">
+<h3 class="font-bold text-on-surface-variant leading-tight">Certificat disponible</h3>
+<p class="text-sm text-on-surface-variant/70 mt-1">Prêt pour le téléchargement sécurisé</p>
+</div>
+</div>
+</section>
+<!-- Information Card -->
+<section class="mt-12 bg-white rounded-2xl p-6 shadow-[0_12px_32px_rgba(0,52,109,0.04)] overflow-hidden relative">
+<div class="absolute top-0 right-0 p-4 opacity-10">
+<span class="material-symbols-outlined text-8xl" data-icon="shield_person">shield_person</span>
+</div>
+<h4 class="text-primary font-bold text-lg mb-4">Prochaines Étapes</h4>
+<ul class="space-y-4 relative z-10">
+<li class="flex gap-3 items-center">
+<span class="material-symbols-outlined text-primary text-xl" data-icon="task_alt">task_alt</span>
+<span class="text-sm text-on-surface-variant">Signature électronique sécurisée</span>
+</li>
+<li class="flex gap-3 items-center">
+<span class="material-symbols-outlined text-primary text-xl" data-icon="task_alt">task_alt</span>
+<span class="text-sm text-on-surface-variant">Intégration au registre national</span>
+</li>
+</ul>
+</section>
+<!-- Support Contact Card -->
+<section class="mt-8 mb-24">
+<div class="bg-surface-container-high rounded-3xl p-8 text-center">
+<div class="flex -space-x-2 justify-center mb-4">
+<img class="w-10 h-10 rounded-full ring-2 ring-surface-container-high" data-alt="portrait of a professional government official woman with a kind expression" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDpiMGQHKvutxglifW9s9Yf9VXb-pnttDzUQINjbkuFiQ-okplHRPHwrpYbMrjjBt8nRUTuL_GOMpgk3zevftgsPjfsNix3Ts51yUGYkWa1ZjZTVRR767Al6IpsHCC65tl4ulsqYc96zWGQIJ8ATnhpnxfvtg2SPonjZ6VbCpkJhQReYhHJVakhhswr4GrNkU6U3uh5sNRIy6IYXQsoHj_g4V353dZIp-kN8pxkY3WVtEmQ-2IJCRc50dvBda270ktpedryySozYF4"/>
+<img class="w-10 h-10 rounded-full ring-2 ring-surface-container-high" data-alt="portrait of a professional government advisor man with glasses" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAGMx3_R9ixwO_5RsIZN1geMqixgEsmQvaq6OlQDIdj4o5m7MOtNzs9RpvP_OJFVNiU_Usg03aTG-OOoM41HmjgYkJwhytB6kQAXdGonBrGRh5ZmxVSnXk-yPElLrKCKQ0u8lIEiAzonWG3My43orYSD4tm3qFYtDv9e3pw2nN0GLzMeRmWi92EYa5_OkjqBRrrlClO7cNEOzWZ-511t3oRIF0LMMYsuI8aOlDgR_qMY1NksrLQ6zLwiplOwysOHjjB_ykuCmLoF9U"/>
+</div>
+<h3 class="text-on-surface font-bold text-lg mb-1">Besoin d'assistance ?</h3>
+<p class="text-on-surface-variant text-sm mb-6">Nos agents sont disponibles pour répondre à vos questions sur votre dossier.</p>
+<div class="flex flex-col sm:flex-row gap-3">
+<button class="flex-1 py-3 px-6 bg-primary text-on-primary rounded-xl font-bold flex items-center justify-center gap-2 active:scale-95 duration-200">
+<span class="material-symbols-outlined text-lg" data-icon="chat_bubble">chat_bubble</span>
+                        Discussion en direct
+                    </button>
+<button class="flex-1 py-3 px-6 bg-surface-container-lowest text-primary rounded-xl font-bold flex items-center justify-center gap-2 active:scale-95 duration-200">
+<span class="material-symbols-outlined text-lg" data-icon="call">call</span>
+                        112 (Gratuit)
+                    </button>
+</div>
+</div>
+</section>
+</main>
+<!-- BottomNavBar -->
+<nav class="fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-4 pb-8 pt-4 bg-white/85 backdrop-blur-2xl shadow-[0_-12px_32px_rgba(0,52,109,0.04)] rounded-t-[2rem]">
+<a class="flex flex-col items-center justify-center text-slate-400 px-5 py-2.5 hover:bg-emerald-50 active:scale-90 duration-300" href="#">
+<span class="material-symbols-outlined mb-1" data-icon="home">home</span>
+<span class="font-manrope text-[11px] font-semibold uppercase tracking-widest">Accueil</span>
+</a>
+<a class="flex flex-col items-center justify-center bg-emerald-100/80 text-emerald-900 rounded-2xl px-5 py-2.5 transition-all active:scale-90 duration-300" href="#">
+<span class="material-symbols-outlined mb-1" data-icon="family_restroom">family_restroom</span>
+<span class="font-manrope text-[11px] font-semibold uppercase tracking-widest">Famille</span>
+</a>
+<a class="flex flex-col items-center justify-center text-slate-400 px-5 py-2.5 hover:bg-emerald-50 active:scale-90 duration-300" href="#">
+<span class="material-symbols-outlined mb-1" data-icon="grid_view">grid_view</span>
+<span class="font-manrope text-[11px] font-semibold uppercase tracking-widest">Services</span>
+</a>
+<a class="flex flex-col items-center justify-center text-slate-400 px-5 py-2.5 hover:bg-emerald-50 active:scale-90 duration-300" href="#">
+<span class="material-symbols-outlined mb-1" data-icon="person">person</span>
+<span class="font-manrope text-[11px] font-semibold uppercase tracking-widest">Profil</span>
+</a>
+</nav>
+</body></html>

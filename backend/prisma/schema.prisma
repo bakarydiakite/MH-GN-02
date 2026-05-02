@@ -1,0 +1,410 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// =========================================================
+// TYPES ENUM (Translations from SQL)
+// =========================================================
+
+enum UserRole {
+  ADMINISTRATEUR
+  SUPERVISEUR
+  VERIFICATEUR
+  AGENT
+  FAMILLE
+}
+
+enum BirthStatus {
+  BROUILLON
+  COMPLET
+  SYNCHRONISE
+  EN_ATTENTE
+  VALIDE
+  REJETE
+}
+
+enum ParentType {
+  PERE
+  MERE
+}
+
+enum CenterType {
+  MATERNITE
+  CASE_SANTE
+  PREFECTURE
+  HOPITAL
+  AUTRE
+}
+
+enum SyncStatus {
+  EN_ATTENTE
+  SUCCES
+  ECHEC
+}
+
+enum BlockchainTxStatus {
+  EN_ATTENTE
+  CONFIRMEE
+  ECHEC
+}
+
+enum AttachmentType {
+  PHOTO_CNI
+  PHOTO_CARNET
+  PHOTO_AUTRE
+  PDF_AUTRE
+}
+
+// =========================================================
+// MODELS
+// =========================================================
+
+model Prefecture {
+  id        String   @id @default(uuid()) @db.Uuid
+  nom       String   @unique @db.VarChar(150)
+  region    String?  @db.VarChar(150)
+  code      String?  @db.VarChar(20)
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  communes        Commune[]
+  sousPrefectures SousPrefecture[]
+  centres         Center[]
+  enfants         Child[]
+  parents         Parent[]
+  naissances      BirthRecord[]    @relation("PrefectureAdministrative")
+
+  @@map("prefectures")
+}
+
+model Commune {
+  id           String     @id @default(uuid()) @db.Uuid
+  nom          String     @db.VarChar(150)
+  prefectureId String     @map("prefecture_id") @db.Uuid
+  prefecture   Prefecture @relation(fields: [prefectureId], references: [id])
+  createdAt    DateTime   @default(now()) @map("created_at")
+  updatedAt    DateTime   @updatedAt @map("updated_at")
+
+  villages   Village[]
+  centres    Center[]
+  enfants    Child[]
+  parents    Parent[]
+  naissances BirthRecord[]
+
+  @@unique([nom, prefectureId])
+  @@map("communes")
+}
+
+model SousPrefecture {
+  id           String     @id @default(uuid()) @db.Uuid
+  nom          String     @db.VarChar(150)
+  prefectureId String     @map("prefecture_id") @db.Uuid
+  prefecture   Prefecture @relation(fields: [prefectureId], references: [id])
+  createdAt    DateTime   @default(now()) @map("created_at")
+  updatedAt    DateTime   @updatedAt @map("updated_at")
+
+  villages   Village[]
+  centres    Center[]
+  enfants    Child[]
+  parents    Parent[]
+
+  @@unique([nom, prefectureId])
+  @@map("sous_prefectures")
+}
+
+model Village {
+  id               String          @id @default(uuid()) @db.Uuid
+  nom              String          @db.VarChar(150)
+  sousPrefectureId String?         @map("sous_prefecture_id") @db.Uuid
+  sousPrefecture   SousPrefecture? @relation(fields: [sousPrefectureId], references: [id])
+  communeId        String?         @map("commune_id") @db.Uuid
+  commune          Commune?        @relation(fields: [communeId], references: [id])
+  createdAt        DateTime        @default(now()) @map("created_at")
+  updatedAt        DateTime        @updatedAt @map("updated_at")
+
+  centres    Center[]
+  enfants    Child[]
+  naissances BirthRecord[]
+
+  @@map("villages")
+}
+
+model User {
+  id                  String    @id @default(uuid()) @db.Uuid
+  nom                 String    @db.VarChar(120)
+  prenom              String?   @db.VarChar(120)
+  email               String?   @unique @db.VarChar(180)
+  telephone           String?   @db.VarChar(30)
+  motDePasseHash      String    @map("mot_de_passe_hash")
+  role                UserRole
+  actif               Boolean   @default(true)
+  derniereConnexionAt DateTime? @map("derniere_connexion_at")
+  createdAt           DateTime  @default(now()) @map("created_at")
+  updatedAt           DateTime  @updatedAt @map("updated_at")
+
+  agent          Agent?
+  verifications  Verification[]
+  auditLogs      AuditLog[]
+
+  @@map("utilisateurs")
+}
+
+model Center {
+  id               String          @id @default(uuid()) @db.Uuid
+  nom              String          @db.VarChar(180)
+  type             CenterType
+  prefectureId     String?         @map("prefecture_id") @db.Uuid
+  prefecture       Prefecture?     @relation(fields: [prefectureId], references: [id])
+  communeId        String?         @map("commune_id") @db.Uuid
+  commune          Commune?        @relation(fields: [communeId], references: [id])
+  sousPrefectureId String?         @map("sous_prefecture_id") @db.Uuid
+  sousPrefecture   SousPrefecture? @relation(fields: [sousPrefectureId], references: [id])
+  villageId        String?         @map("village_id") @db.Uuid
+  village          Village?        @relation(fields: [villageId], references: [id])
+  adresse          String?         @db.Text
+  coordonneesGps   String?         @map("coordonnees_gps") @db.VarChar(120)
+  actif            Boolean         @default(true)
+  createdAt        DateTime        @default(now()) @map("created_at")
+  updatedAt        DateTime        @updatedAt @map("updated_at")
+
+  agents     Agent[]
+  naissances BirthRecord[]
+
+  @@map("centres")
+}
+
+model Agent {
+  id           String   @id @default(uuid()) @db.Uuid
+  utilisateurId String   @unique @map("utilisateur_id") @db.Uuid
+  user         User     @relation(fields: [utilisateurId], references: [id], onDelete: Cascade)
+  matricule    String?  @unique @db.VarChar(80)
+  centerId     String?  @map("centre_id") @db.Uuid
+  center       Center?  @relation(fields: [centerId], references: [id])
+  fonction     String?  @db.VarChar(120)
+  actif        Boolean  @default(true)
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  naissances     BirthRecord[]
+  syncLogs       SyncLog[]
+
+  @@map("agents")
+}
+
+model BirthRecord {
+  id                          String      @id @default(uuid()) @db.Uuid
+  numeroCertificat            String?     @unique @map("numero_certificat") @db.VarChar(100)
+  numeroIdentificationNational String?     @unique @map("numero_identification_national") @db.VarChar(100)
+  identifiantUniqueNational   String?     @unique @map("identifiant_unique_national") @db.VarChar(100)
+  
+  agentId                     String      @map("agent_id") @db.Uuid
+  agent                       Agent       @relation(fields: [agentId], references: [id])
+  centerId                    String?     @map("centre_id") @db.Uuid
+  center                      Center?     @relation(fields: [centerId], references: [id])
+
+  prefectureAdministrativeId  String?     @map("prefecture_administrative_id") @db.Uuid
+  prefecture                  Prefecture? @relation("PrefectureAdministrative", fields: [prefectureAdministrativeId], references: [id])
+  communeId                   String?     @map("commune_id") @db.Uuid
+  commune                     Commune?    @relation(fields: [communeId], references: [id])
+  villageId                   String?     @map("village_id") @db.Uuid
+  village                     Village?    @relation(fields: [villageId], references: [id])
+
+  statut                      BirthStatus @default(BROUILLON)
+  dateDresse                  DateTime?   @map("date_dresse") @db.Date
+  officierEtatCivilNom        String?     @map("officier_etat_civil_nom") @db.VarChar(180)
+  approuvePar                String?     @map("approuve_par") @db.VarChar(180)
+  commentaireRejet            String?     @map("commentaire_rejet") @db.Text
+  
+  hashBlockchain              String?     @map("hash_blockchain") @db.Text
+  qrReference                 String?     @map("qr_reference") @db.Text
+
+  dateCreationMetier          DateTime    @default(now()) @map("date_creation_metier")
+  dateValidation              DateTime?   @map("date_validation")
+  createdAt                   DateTime    @default(now()) @map("created_at")
+  updatedAt                   DateTime    @updatedAt @map("updated_at")
+
+  enfant          Child?
+  parents         Parent[]
+  declarant       Declarant?
+  attachments     Attachment[]
+  acteNumerique   DigitalAct?
+  blockchainTx    BlockchainTransaction?
+  syncLogs        SyncLog[]
+  verifications   Verification[]
+
+  @@map("naissances")
+}
+
+model Child {
+  id                        String      @id @default(uuid()) @db.Uuid
+  naissanceId               String      @unique @map("naissance_id") @db.Uuid
+  naissance                 BirthRecord @relation(fields: [naissanceId], references: [id], onDelete: Cascade)
+
+  prenoms                   String      @db.VarChar(180)
+  nom                       String      @db.VarChar(120)
+  
+  regionNaissance           String?     @map("region_naissance") @db.VarChar(150)
+  prefectureNaissanceId     String?     @map("prefecture_naissance_id") @db.Uuid
+  prefecture                Prefecture? @relation(fields: [prefectureNaissanceId], references: [id])
+  sousPrefectureNaissanceId String?     @map("sous_prefecture_naissance_id") @db.Uuid
+  sousPrefecture            SousPrefecture? @relation(fields: [sousPrefectureNaissanceId], references: [id])
+  communeNaissanceId        String?     @map("commune_naissance_id") @db.Uuid
+  commune                   Commune?    @relation(fields: [communeNaissanceId], references: [id])
+  villageNaissanceId        String?     @map("village_naissance_id") @db.Uuid
+  village                   Village?    @relation(fields: [villageNaissanceId], references: [id])
+  lieuNaissanceLibelle      String?     @map("lieu_naissance_libelle") @db.VarChar(255)
+
+  dateNaissance             DateTime    @map("date_naissance") @db.Date
+  heureNaissance            DateTime?   @map("heure_naissance") @db.Time
+  sexe                      String      @db.VarChar(20)
+  nationalite               String?     @default("Guinéenne") @db.VarChar(100)
+
+  createdAt                 DateTime    @default(now()) @map("created_at")
+  updatedAt                 DateTime    @updatedAt @map("updated_at")
+
+  @@map("enfants")
+}
+
+model Parent {
+  id                   String      @id @default(uuid()) @db.Uuid
+  naissanceId          String      @map("naissance_id") @db.Uuid
+  naissance            BirthRecord @relation(fields: [naissanceId], references: [id], onDelete: Cascade)
+
+  type                 ParentType
+  nom                  String      @db.VarChar(120)
+  prenom               String?     @db.VarChar(120)
+  dateNaissance        DateTime?   @map("date_naissance") @db.Date
+  numeroIdentification String?     @map("numero_identification") @db.VarChar(120)
+  cniOuAutre           String?     @map("cni_ou_autre") @db.VarChar(120)
+  nationalite          String?     @db.VarChar(100)
+  profession           String?     @db.VarChar(120)
+  telephone            String?     @db.VarChar(30)
+
+  regionAdresse        String?     @map("region_adresse") @db.VarChar(150)
+  prefectureAdresseId  String?     @map("prefecture_adresse_id") @db.Uuid
+  prefecture           Prefecture? @relation(fields: [prefectureAdresseId], references: [id])
+  sousPrefectureAdresseId String?  @map("sous_prefecture_adresse_id") @db.Uuid
+  sousPrefecture       SousPrefecture? @relation(fields: [sousPrefectureAdresseId], references: [id])
+  communeAdresseId     String?     @map("commune_adresse_id") @db.Uuid
+  commune              Commune?    @relation(fields: [communeAdresseId], references: [id])
+  quartierDistrict     String?     @map("quartier_district") @db.VarChar(150)
+  secteurVillage       String?     @map("secteur_village") @db.VarChar(150)
+
+  createdAt            DateTime    @default(now()) @map("created_at")
+  updatedAt            DateTime    @updatedAt @map("updated_at")
+
+  @@unique([naissanceId, type])
+  @@map("parents")
+}
+
+model Declarant {
+  id                   String      @id @default(uuid()) @db.Uuid
+  naissanceId          String      @unique @map("naissance_id") @db.Uuid
+  naissance            BirthRecord @relation(fields: [naissanceId], references: [id], onDelete: Cascade)
+
+  nom                  String      @db.VarChar(180)
+  numeroIdentification String?     @map("numero_identification") @db.VarChar(120)
+  lienParente          String?     @map("lien_parente") @db.VarChar(120)
+  cniOuAutre           String?     @map("cni_ou_autre") @db.VarChar(120)
+
+  createdAt            DateTime    @default(now()) @map("created_at")
+  updatedAt            DateTime    @updatedAt @map("updated_at")
+
+  @@map("declarants")
+}
+
+model Attachment {
+  id          String         @id @default(uuid()) @db.Uuid
+  naissanceId String         @map("naissance_id") @db.Uuid
+  naissance   BirthRecord    @relation(fields: [naissanceId], references: [id], onDelete: Cascade)
+  type        AttachmentType
+  nomFichier  String?        @map("nom_fichier") @db.VarChar(255)
+  urlFichier  String         @map("url_fichier") @db.Text
+  mimeType    String?        @map("mime_type") @db.VarChar(120)
+  tailleOctets BigInt?       @map("taille_octets")
+  createdAt   DateTime       @default(now()) @map("created_at")
+
+  @@map("pieces_jointes")
+}
+
+model DigitalAct {
+  id             String      @id @default(uuid()) @db.Uuid
+  naissanceId    String      @unique @map("naissance_id") @db.Uuid
+  naissance      BirthRecord @relation(fields: [naissanceId], references: [id], onDelete: Cascade)
+  numeroActe     String?     @unique @map("numero_acte") @db.VarChar(100)
+  urlPdf         String?     @map("url_pdf") @db.Text
+  qrCodeData     String?     @map("qr_code_data") @db.Text
+  qrCodeImageUrl String?     @map("qr_code_image_url") @db.Text
+  version        Int         @default(1)
+  dateGeneration DateTime    @default(now()) @map("date_generation")
+  createdAt      DateTime    @default(now()) @map("created_at")
+  updatedAt      DateTime    @updatedAt @map("updated_at")
+
+  @@map("actes_numeriques")
+}
+
+model BlockchainTransaction {
+  id               String             @id @default(uuid()) @db.Uuid
+  naissanceId      String             @unique @map("naissance_id") @db.Uuid
+  naissance        BirthRecord        @relation(fields: [naissanceId], references: [id], onDelete: Cascade)
+  txHash           String?            @unique @map("tx_hash") @db.VarChar(255)
+  reseauBlockchain String?            @map("reseau_blockchain") @db.VarChar(120)
+  blocNumero       BigInt?            @map("bloc_numero")
+  horodatageAncrage DateTime?         @map("horodatage_ancrage")
+  statut           BlockchainTxStatus @default(EN_ATTENTE)
+  createdAt        DateTime           @default(now()) @map("created_at")
+  updatedAt        DateTime           @updatedAt @map("updated_at")
+
+  @@map("transactions_blockchain")
+}
+
+model SyncLog {
+  id               String      @id @default(uuid()) @db.Uuid
+  naissanceId      String      @map("naissance_id") @db.Uuid
+  naissance        BirthRecord @relation(fields: [naissanceId], references: [id], onDelete: Cascade)
+  agentId          String?     @map("agent_id") @db.Uuid
+  agent            Agent?      @relation(fields: [agentId], references: [id])
+  statut           SyncStatus
+  tentatives       Int         @default(0)
+  messageErreur    String?     @map("message_erreur") @db.Text
+  dateDernierEssai DateTime?   @map("date_dernier_essai")
+  createdAt        DateTime    @default(now()) @map("created_at")
+
+  @@map("journaux_synchronisation")
+}
+
+model Verification {
+  id                     String      @id @default(uuid()) @db.Uuid
+  naissanceId            String?     @map("naissance_id") @db.Uuid
+  naissance              BirthRecord? @relation(fields: [naissanceId], references: [id])
+  moyen                  String      @db.VarChar(120) // Enum translation
+  valeurRecherchee       String?     @map("valeur_recherchee") @db.VarChar(255)
+  resultat               String      @db.VarChar(120) // Enum translation
+  verifieParUtilisateurId String?     @map("verifie_par_utilisateur_id") @db.Uuid
+  user                   User?       @relation(fields: [verifieParUtilisateurId], references: [id])
+  organisme              String?     @db.VarChar(180)
+  adresseIp              String?     @map("adresse_ip") @db.VarChar(64)
+  createdAt              DateTime    @default(now()) @map("created_at")
+
+  @@map("verifications")
+}
+
+model AuditLog {
+  id            String   @id @default(uuid()) @db.Uuid
+  utilisateurId String?  @map("utilisateur_id") @db.Uuid
+  user          User?    @relation(fields: [utilisateurId], references: [id])
+  action        String   @db.VarChar(180)
+  typeEntite    String   @map("type_entite") @db.VarChar(120)
+  entiteId      String?  @map("entite_id") @db.Uuid
+  details       Json?    @db.JsonB
+  createdAt     DateTime @default(now()) @map("created_at")
+
+  @@map("journaux_audit")
+}

@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+
+<html class="light" lang="fr"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@200;300;400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "on-tertiary-fixed-variant": "#304d39",
+                        "on-secondary": "#ffffff",
+                        "surface-container": "#e9f0ea",
+                        "error-container": "#ffdad6",
+                        "inverse-primary": "#59de9b",
+                        "on-secondary-container": "#496758",
+                        "surface-bright": "#f4fbf6",
+                        "surface-tint": "#006d43",
+                        "tertiary": "#47654f",
+                        "on-secondary-fixed-variant": "#2f4d3f",
+                        "on-tertiary-fixed": "#032110",
+                        "on-primary-fixed": "#002111",
+                        "on-background": "#161d1a",
+                        "surface-container-high": "#e3eae5",
+                        "outline-variant": "#bccabe",
+                        "on-surface": "#161d1a",
+                        "tertiary-container": "#7b9b83",
+                        "on-secondary-fixed": "#022115",
+                        "primary-fixed-dim": "#59de9b",
+                        "secondary-container": "#c3e5d2",
+                        "primary-fixed": "#78fbb6",
+                        "on-surface-variant": "#3d4a41",
+                        "surface-container-low": "#eff5f0",
+                        "on-tertiary": "#ffffff",
+                        "primary": "#006d43",
+                        "tertiary-fixed-dim": "#adcfb4",
+                        "surface-dim": "#d5dcd7",
+                        "on-primary": "#ffffff",
+                        "inverse-surface": "#2b322f",
+                        "surface-variant": "#dde4df",
+                        "secondary": "#466556",
+                        "secondary-fixed": "#c8ead7",
+                        "on-error-container": "#93000a",
+                        "inverse-on-surface": "#ecf2ed",
+                        "surface-container-lowest": "#ffffff",
+                        "on-error": "#ffffff",
+                        "error": "#ba1a1a",
+                        "on-primary-fixed-variant": "#005232",
+                        "on-tertiary-container": "#153220",
+                        "secondary-fixed-dim": "#adcebc",
+                        "tertiary-fixed": "#c9ebcf",
+                        "on-primary-container": "#00331d",
+                        "surface-container-highest": "#dde4df",
+                        "surface": "#f4fbf6",
+                        "outline": "#6d7a70",
+                        "background": "#f4fbf6",
+                        "primary-container": "#00a86b"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.125rem",
+                        "lg": "0.25rem",
+                        "xl": "0.5rem",
+                        "full": "0.75rem"
+                    },
+                    "fontFamily": {
+                        "headline": ["Manrope"],
+                        "body": ["Manrope"],
+                        "label": ["Manrope"]
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        body { font-family: 'Manrope', sans-serif; }
+        .glass-effect { backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-surface text-on-surface min-h-screen pb-32">
+<!-- TopAppBar -->
+<header class="w-full sticky top-0 z-50 bg-[#f7f9fb]/90 dark:bg-slate-950/90 backdrop-blur-xl shadow-sm bg-emerald-50/50 dark:bg-emerald-900/10">
+<div class="flex justify-between items-center px-6 py-4 w-full">
+<h1 class="text-emerald-900 dark:text-emerald-100 font-extrabold tracking-tighter text-lg font-headline">NaissanceChain</h1>
+<div class="flex items-center gap-4">
+<button class="material-symbols-outlined text-emerald-800 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 transition-colors p-2 rounded-xl active:scale-95 duration-200">notifications</button>
+</div>
+</div>
+</header>
+<main class="max-w-7xl mx-auto px-6 pt-8 space-y-12">
+<!-- Hero Greeting Section -->
+<section class="relative overflow-hidden rounded-[2.5rem] bg-gradient-to-br from-primary to-primary-container p-8 md:p-12 text-on-primary">
+<div class="relative z-10 max-w-2xl">
+<h2 class="text-4xl md:text-5xl font-extrabold tracking-tight mb-4">Bonjour, Famille Diallo</h2>
+<p class="text-primary-fixed text-lg md:text-xl font-medium opacity-90 leading-relaxed">
+                    Bienvenue sur votre portail sécurisé. La protection de l'identité de votre famille commence ici.
+                </p>
+<div class="mt-10 flex flex-wrap gap-4">
+<div class="bg-white/15 backdrop-blur-md rounded-2xl p-6 flex flex-col gap-1 min-w-[160px]">
+<span class="text-3xl font-bold">04</span>
+<span class="text-sm font-label uppercase tracking-widest opacity-80">Enfants enregistrés</span>
+</div>
+<div class="bg-white/15 backdrop-blur-md rounded-2xl p-6 flex flex-col gap-1 min-w-[160px]">
+<span class="material-symbols-outlined text-3xl" style="font-variation-settings: 'FILL' 1;">verified_user</span>
+<span class="text-sm font-label uppercase tracking-widest opacity-80">Identité Sécurisée</span>
+</div>
+</div>
+</div>
+<!-- Decorative Element -->
+<div class="absolute top-0 right-0 w-1/3 h-full opacity-20 pointer-events-none">
+<div class="w-full h-full bg-no-repeat bg-right-top bg-contain" data-alt="Abstract geometric patterns mimicking organic cell structures in emerald green tones with soft transitions" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuDFatq6-riKdiIKbs58euFRrsTjzzUcU8AxBNDyoC92mokquWDu4s6-ptPDTgZm9XZShgupWUO_lItOJavO44D9Rrmx1OMLaBwQR7xilbSupypvUAuS6rgzZAvd8tzs3vrL3Td3SJrpvxuqGrbr5KftqfVhdpHfk5CpDPN9em3XpL7pF79wQV2yOhSeu30X2vS9kFHdqiyXhBMAGnZSMirJ0R6rpxp48ehUyvwpreQT-mA1cnz4jdRF7yBvLgffeIg1oSuEjznZ03s')"></div>
+</div>
+</section>
+<!-- Services Bento Grid -->
+<section>
+<div class="flex justify-between items-end mb-8">
+<div>
+<h3 class="text-2xl font-bold text-on-surface tracking-tight">Services administratifs</h3>
+<p class="text-on-surface-variant font-medium">Gérez vos documents officiels en toute simplicité.</p>
+</div>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+<!-- Card 1 -->
+<div class="group bg-surface-container-lowest rounded-[2rem] p-8 shadow-sm hover:shadow-md transition-all duration-300 flex flex-col gap-6 cursor-pointer">
+<div class="w-14 h-14 rounded-2xl bg-secondary-container flex items-center justify-center text-primary">
+<span class="material-symbols-outlined text-3xl">description</span>
+</div>
+<div>
+<h4 class="text-xl font-bold mb-2">Actes de naissance</h4>
+<p class="text-on-surface-variant text-sm leading-relaxed">Consultez et téléchargez les actes de naissance numérisés de vos enfants.</p>
+</div>
+<div class="mt-auto flex items-center text-primary font-bold gap-2 text-sm">
+<span>Accéder</span>
+<span class="material-symbols-outlined text-sm">arrow_forward</span>
+</div>
+</div>
+<!-- Card 2 -->
+<div class="group bg-surface-container-lowest rounded-[2rem] p-8 shadow-sm hover:shadow-md transition-all duration-300 flex flex-col gap-6 cursor-pointer">
+<div class="w-14 h-14 rounded-2xl bg-secondary-container flex items-center justify-center text-primary">
+<span class="material-symbols-outlined text-3xl">menu_book</span>
+</div>
+<div>
+<h4 class="text-xl font-bold mb-2">Demande de livret</h4>
+<p class="text-on-surface-variant text-sm leading-relaxed">Commandez un nouveau livret de famille ou une copie certifiée.</p>
+</div>
+<div class="mt-auto flex items-center text-primary font-bold gap-2 text-sm">
+<span>Commander</span>
+<span class="material-symbols-outlined text-sm">arrow_forward</span>
+</div>
+</div>
+<!-- Card 3 -->
+<div class="group bg-surface-container-lowest rounded-[2rem] p-8 shadow-sm hover:shadow-md transition-all duration-300 flex flex-col gap-6 cursor-pointer">
+<div class="w-14 h-14 rounded-2xl bg-secondary-container flex items-center justify-center text-primary">
+<span class="material-symbols-outlined text-3xl">edit_note</span>
+</div>
+<div>
+<h4 class="text-xl font-bold mb-2">Demande de correction</h4>
+<p class="text-on-surface-variant text-sm leading-relaxed">Signalez une erreur sur un document officiel pour rectification.</p>
+</div>
+<div class="mt-auto flex items-center text-primary font-bold gap-2 text-sm">
+<span>Rectifier</span>
+<span class="material-symbols-outlined text-sm">arrow_forward</span>
+</div>
+</div>
+</div>
+</section>
+<!-- Mission Statement Section -->
+<section class="grid grid-cols-1 md:grid-cols-2 gap-12 items-center bg-surface-container-low rounded-[3rem] p-8 md:p-16">
+<div class="space-y-6">
+<div class="inline-flex items-center gap-2 px-4 py-2 bg-primary-fixed rounded-full text-on-primary-fixed-variant font-bold text-xs font-label uppercase tracking-wider">
+                    Notre Engagement
+                </div>
+<h3 class="text-3xl md:text-4xl font-extrabold text-on-surface leading-tight">
+                    Une identité souveraine pour chaque citoyen.
+                </h3>
+<p class="text-lg text-on-surface-variant leading-relaxed">
+                    NaissanceChain utilise la technologie blockchain pour garantir l'intégrité et la pérennité des archives d'état civil. Nous construisons le socle numérique de la Guinée de demain, où chaque naissance est un acte de souveraineté protégé.
+                </p>
+<div class="pt-4">
+<button class="bg-primary text-on-primary px-8 py-4 rounded-xl font-bold text-lg hover:shadow-lg transition-shadow">En savoir plus</button>
+</div>
+</div>
+<div class="relative aspect-square rounded-[2rem] overflow-hidden">
+<img alt="Family portrait" class="w-full h-full object-cover" data-alt="A warm family portrait in a sunlit modern interior with emerald green textile accents, radiating trust and security" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAi-hEfahArZu52D3jThKfeXAQt15RW4pwOY8Aix2fZQoPRsljtw-UtdAD9AWP8AJPyjP3CdhEf4mmQt06bc0ADIcE6SE0agCgaEGM6ypkzS5VpZkAxX1BrH9bNxpu6g55ANymrXe6mX7hq5ACqzlMOYNeeZqjCP3d5gQiNHxR7T04Ilk-qKhsktg6TBCFZNCZUkGEscCFGEXlzMzR9f5JOsqw-MnG4KDwZW-XRAucwIVmLgSJ6njo0wTG_Fio_7d3tqsBI_AZGPGU"/>
+<div class="absolute inset-0 bg-gradient-to-t from-emerald-900/40 to-transparent"></div>
+</div>
+</section>
+</main>
+<!-- BottomNavBar -->
+<nav class="fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-4 pb-8 pt-4 bg-white/85 dark:bg-slate-900/85 backdrop-blur-2xl shadow-[0_-12px_32px_rgba(0,52,109,0.04)] rounded-t-[2rem]">
+<!-- Home (Active) -->
+<a class="flex flex-col items-center justify-center bg-emerald-100/80 dark:bg-emerald-800/40 text-emerald-900 dark:text-emerald-50 rounded-2xl px-5 py-2.5 transition-all active:scale-90 duration-300 ease-out" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">home</span>
+<span class="font-manrope text-[11px] font-semibold uppercase tracking-widest mt-1">Accueil</span>
+</a>
+<!-- Famille -->
+<a class="flex flex-col items-center justify-center text-slate-400 dark:text-slate-500 px-5 py-2.5 hover:bg-emerald-50 dark:hover:bg-emerald-800/20 active:scale-90 duration-300 ease-out" href="#">
+<span class="material-symbols-outlined">family_restroom</span>
+<span class="font-manrope text-[11px] font-semibold uppercase tracking-widest mt-1">Famille</span>
+</a>
+<!-- Services -->
+<a class="flex flex-col items-center justify-center text-slate-400 dark:text-slate-500 px-5 py-2.5 hover:bg-emerald-50 dark:hover:bg-emerald-800/20 active:scale-90 duration-300 ease-out" href="#">
+<span class="material-symbols-outlined">grid_view</span>
+<span class="font-manrope text-[11px] font-semibold uppercase tracking-widest mt-1">Services</span>
+</a>
+<!-- Profil -->
+<a class="flex flex-col items-center justify-center text-slate-400 dark:text-slate-500 px-5 py-2.5 hover:bg-emerald-50 dark:hover:bg-emerald-800/20 active:scale-90 duration-300 ease-out" href="#">
+<span class="material-symbols-outlined">person</span>
+<span class="font-manrope text-[11px] font-semibold uppercase tracking-widest mt-1">Profil</span>
+</a>
+</nav>
+</body></html>

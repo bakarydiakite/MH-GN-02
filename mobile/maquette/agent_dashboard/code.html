@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+
+<html lang="fr"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>NaissanceChain - Tableau de Bord Agent</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@200;300;400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "on-tertiary-fixed-variant": "#304d39",
+                    "on-secondary": "#ffffff",
+                    "surface-container": "#e9f0ea",
+                    "error-container": "#ffdad6",
+                    "inverse-primary": "#59de9b",
+                    "on-secondary-container": "#496758",
+                    "surface-bright": "#f4fbf6",
+                    "surface-tint": "#006d43",
+                    "tertiary": "#47654f",
+                    "on-secondary-fixed-variant": "#2f4d3f",
+                    "on-tertiary-fixed": "#032110",
+                    "on-primary-fixed": "#002111",
+                    "on-background": "#161d1a",
+                    "surface-container-high": "#e3eae5",
+                    "outline-variant": "#bccabe",
+                    "on-surface": "#161d1a",
+                    "tertiary-container": "#7b9b83",
+                    "on-secondary-fixed": "#022115",
+                    "primary-fixed-dim": "#59de9b",
+                    "secondary-container": "#c3e5d2",
+                    "primary-fixed": "#78fbb6",
+                    "on-surface-variant": "#3d4a41",
+                    "surface-container-low": "#eff5f0",
+                    "on-tertiary": "#ffffff",
+                    "primary": "#006d43",
+                    "tertiary-fixed-dim": "#adcfb4",
+                    "surface-dim": "#d5dcd7",
+                    "on-primary": "#ffffff",
+                    "inverse-surface": "#2b322f",
+                    "surface-variant": "#dde4df",
+                    "secondary": "#466556",
+                    "secondary-fixed": "#c8ead7",
+                    "on-error-container": "#93000a",
+                    "inverse-on-surface": "#ecf2ed",
+                    "surface-container-lowest": "#ffffff",
+                    "on-error": "#ffffff",
+                    "error": "#ba1a1a",
+                    "on-primary-fixed-variant": "#005232",
+                    "on-tertiary-container": "#153220",
+                    "secondary-fixed-dim": "#adcebc",
+                    "tertiary-fixed": "#c9ebcf",
+                    "on-primary-container": "#00331d",
+                    "surface-container-highest": "#dde4df",
+                    "surface": "#f4fbf6",
+                    "outline": "#6d7a70",
+                    "background": "#f4fbf6",
+                    "primary-container": "#00a86b"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.125rem",
+                    "lg": "0.25rem",
+                    "xl": "0.5rem",
+                    "full": "0.75rem"
+            },
+            "fontFamily": {
+                    "headline": ["Manrope"],
+                    "body": ["Manrope"],
+                    "label": ["Manrope"]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        body { font-family: 'Manrope', sans-serif; }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-surface text-on-surface selection:bg-primary-fixed selection:text-on-primary-fixed">
+<!-- TopAppBar -->
+<header class="w-full sticky top-0 z-50 bg-[#f7f9fb]/90 dark:bg-slate-950/90 backdrop-blur-xl shadow-sm flex justify-between items-center px-6 py-4 w-full">
+<div class="flex items-center gap-4">
+<span class="text-emerald-900 dark:text-emerald-100 font-extrabold tracking-tighter text-lg">NaissanceChain</span>
+<div class="hidden md:flex items-center gap-2 px-3 py-1 bg-surface-container-low rounded-full">
+<span class="w-2 h-2 rounded-full bg-primary-container animate-pulse"></span>
+<span class="text-xs font-semibold uppercase tracking-widest text-primary">Serveur Connecté</span>
+</div>
+</div>
+<div class="flex items-center gap-3">
+<button class="material-symbols-outlined text-emerald-800 dark:text-emerald-400 p-2 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 transition-colors active:scale-95 duration-200">notifications</button>
+<div class="w-8 h-8 rounded-full overflow-hidden border border-outline-variant/30">
+<img alt="User Profile" class="w-full h-auto" data-alt="Portrait of a professional Guinean agent in formal attire with a neutral background" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDyLzkLlWtVOznsR39EAagb33_TGi69c7s3l7e84p73Qk1pYaZ6i-i4y3NlBO7aYdk2GuLIH4vm56_MOF6f-T00BSVy5R7BR38e2uum4no1axwkPXr4TXDgY1ldrpmhWnHkAkyQ3YmsPzKXRV4qShTcE4jdXfGKqJODQ6mSzfFBtmW4R9wvMz6FcVCTAlhgV5ORm2UQa12d54qvUfjanDp9IzmFfeblKpCE2FANwxmGGIUQfjYFnhG7ojL4lDNqxD6YP-xRZUKXYFU"/>
+</div>
+</div>
+</header>
+<main class="max-w-7xl mx-auto px-6 pt-8 pb-32">
+<!-- Hero Connectivity Status (Mobile Only) -->
+<div class="md:hidden mb-6 p-4 rounded-xl bg-primary-container/10 border border-primary/10 flex items-center justify-between">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-primary">cloud_done</span>
+<div>
+<p class="text-xs font-bold text-primary uppercase tracking-wider">État du Système</p>
+<p class="text-sm font-medium text-on-surface-variant">Synchronisation en temps réel active</p>
+</div>
+</div>
+<span class="text-[10px] bg-primary text-white px-2 py-1 rounded-full font-bold">100%</span>
+</div>
+<!-- Greeting & Context -->
+<section class="mb-10">
+<h1 class="text-4xl font-extrabold text-on-surface tracking-tight mb-2">Bonjour, Mamadou</h1>
+<p class="text-on-surface-variant max-w-2xl leading-relaxed">Bienvenue sur votre console sécurisée. Gérez les enregistrements de naissance et assurez la souveraineté numérique des données nationales.</p>
+</section>
+<!-- Stats Bento Grid -->
+<section class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
+<!-- Births Today -->
+<div class="bg-primary text-on-primary rounded-xl p-8 flex flex-col justify-between shadow-lg relative overflow-hidden group">
+<div class="relative z-10">
+<span class="material-symbols-outlined text-4xl mb-4 opacity-80" data-weight="fill" style="font-variation-settings: 'FILL' 1;">child_care</span>
+<h3 class="text-lg font-medium opacity-90 mb-1">Naissances aujourd'hui</h3>
+<p class="text-5xl font-extrabold tracking-tighter">12</p>
+</div>
+<div class="mt-8 flex items-center gap-2 text-xs font-bold tracking-widest uppercase opacity-80 z-10">
+<span class="material-symbols-outlined text-sm">trending_up</span>
+<span>+20% vs hier</span>
+</div>
+<div class="absolute -right-8 -bottom-8 w-32 h-32 bg-primary-container/20 rounded-full blur-3xl group-hover:scale-150 transition-transform duration-700"></div>
+</div>
+<!-- Pending Sync -->
+<div class="bg-surface-container-lowest rounded-xl p-8 shadow-sm flex flex-col justify-between relative overflow-hidden border-b-4 border-tertiary">
+<div>
+<span class="material-symbols-outlined text-tertiary text-4xl mb-4">sync_problem</span>
+<h3 class="text-on-surface-variant text-lg font-medium mb-1">En attente de synchronisation</h3>
+<p class="text-5xl font-extrabold text-on-surface tracking-tighter">04</p>
+</div>
+<div class="mt-8">
+<button class="text-xs font-extrabold text-primary uppercase tracking-widest flex items-center gap-1 hover:gap-2 transition-all">
+                        Synchroniser maintenant
+                        <span class="material-symbols-outlined text-sm">arrow_forward</span>
+</button>
+</div>
+</div>
+<!-- Verified Records -->
+<div class="bg-surface-container-low rounded-xl p-8 flex flex-col justify-between">
+<div>
+<span class="material-symbols-outlined text-secondary text-4xl mb-4">verified</span>
+<h3 class="text-on-surface-variant text-lg font-medium mb-1">Dossiers validés</h3>
+<p class="text-5xl font-extrabold text-on-surface tracking-tighter">842</p>
+</div>
+<div class="mt-8 flex items-center gap-3">
+<div class="flex -space-x-2">
+<div class="w-6 h-6 rounded-full bg-primary-container border-2 border-surface"></div>
+<div class="w-6 h-6 rounded-full bg-secondary-container border-2 border-surface"></div>
+<div class="w-6 h-6 rounded-full bg-tertiary-container border-2 border-surface"></div>
+</div>
+<span class="text-xs font-medium text-on-surface-variant">Vérification Blockchain active</span>
+</div>
+</div>
+</section>
+<!-- Quick Actions Grid -->
+<h2 class="text-xl font-bold mb-6 tracking-tight text-on-surface-variant uppercase tracking-[0.15em]">Actions Rapides</h2>
+<section class="grid grid-cols-2 md:grid-cols-4 gap-4">
+<!-- Nouvelle naissance -->
+<div class="bg-surface-container-lowest p-6 rounded-xl shadow-sm hover:shadow-md hover:bg-primary/5 transition-all group cursor-pointer text-center md:text-left">
+<div class="w-12 h-12 bg-primary-container/10 text-primary rounded-full flex items-center justify-center mb-4 mx-auto md:mx-0 group-hover:bg-primary group-hover:text-white transition-colors">
+<span class="material-symbols-outlined" data-weight="fill" style="font-variation-settings: 'FILL' 1;">add_circle</span>
+</div>
+<h4 class="font-bold text-on-surface text-sm md:text-base mb-1 leading-tight">Nouvelle naissance</h4>
+<p class="text-xs text-on-surface-variant opacity-70">Créer un certificat</p>
+</div>
+<!-- Brouillons -->
+<div class="bg-surface-container-lowest p-6 rounded-xl shadow-sm hover:shadow-md hover:bg-primary/5 transition-all group cursor-pointer text-center md:text-left">
+<div class="w-12 h-12 bg-surface-container-high text-on-surface-variant rounded-full flex items-center justify-center mb-4 mx-auto md:mx-0 group-hover:bg-tertiary group-hover:text-white transition-colors">
+<span class="material-symbols-outlined">drafts</span>
+</div>
+<h4 class="font-bold text-on-surface text-sm md:text-base mb-1 leading-tight">Brouillons</h4>
+<p class="text-xs text-on-surface-variant opacity-70">3 en cours</p>
+</div>
+<!-- Synchronisation -->
+<div class="bg-surface-container-lowest p-6 rounded-xl shadow-sm hover:shadow-md hover:bg-primary/5 transition-all group cursor-pointer text-center md:text-left">
+<div class="w-12 h-12 bg-surface-container-high text-on-surface-variant rounded-full flex items-center justify-center mb-4 mx-auto md:mx-0 group-hover:bg-emerald-600 group-hover:text-white transition-colors">
+<span class="material-symbols-outlined">cloud_sync</span>
+</div>
+<h4 class="font-bold text-on-surface text-sm md:text-base mb-1 leading-tight">Synchronisation</h4>
+<p class="text-xs text-on-surface-variant opacity-70">Vérifier l'état</p>
+</div>
+<!-- Historique -->
+<div class="bg-surface-container-lowest p-6 rounded-xl shadow-sm hover:shadow-md hover:bg-primary/5 transition-all group cursor-pointer text-center md:text-left">
+<div class="w-12 h-12 bg-surface-container-high text-on-surface-variant rounded-full flex items-center justify-center mb-4 mx-auto md:mx-0 group-hover:bg-on-surface group-hover:text-white transition-colors">
+<span class="material-symbols-outlined">history</span>
+</div>
+<h4 class="font-bold text-on-surface text-sm md:text-base mb-1 leading-tight">Historique</h4>
+<p class="text-xs text-on-surface-variant opacity-70">Consulter les archives</p>
+</div>
+</section>
+<!-- Recent Activity Asymmetric Layout -->
+<section class="mt-16 grid grid-cols-1 lg:grid-cols-12 gap-12">
+<div class="lg:col-span-8">
+<div class="flex justify-between items-end mb-8">
+<div>
+<h2 class="text-2xl font-extrabold text-on-surface tracking-tight">Derniers Enregistrements</h2>
+<p class="text-on-surface-variant text-sm">Mises à jour récentes de votre secteur</p>
+</div>
+<button class="text-sm font-bold text-primary hover:underline">Voir tout</button>
+</div>
+<div class="space-y-4">
+<!-- Activity Item -->
+<div class="flex items-center gap-6 p-5 bg-surface-container-lowest rounded-2xl hover:bg-white transition-all shadow-sm">
+<div class="w-14 h-14 bg-surface-container-high rounded-full flex items-center justify-center text-primary-container shrink-0">
+<span class="material-symbols-outlined text-3xl">baby_changing_station</span>
+</div>
+<div class="flex-1">
+<div class="flex justify-between items-start mb-1">
+<h4 class="font-bold text-on-surface">Camara, Mariama</h4>
+<span class="text-[10px] font-bold py-1 px-3 bg-secondary-fixed text-on-secondary-fixed-variant rounded-full uppercase tracking-tighter">Blockchain Validée</span>
+</div>
+<div class="flex items-center gap-4 text-xs text-on-surface-variant font-medium">
+<span class="flex items-center gap-1"><span class="material-symbols-outlined text-[14px]">schedule</span>Il y a 10 min</span>
+<span class="flex items-center gap-1"><span class="material-symbols-outlined text-[14px]">location_on</span>Hôpital Donka, Conakry</span>
+</div>
+</div>
+</div>
+<!-- Activity Item -->
+<div class="flex items-center gap-6 p-5 bg-surface-container-lowest rounded-2xl hover:bg-white transition-all shadow-sm">
+<div class="w-14 h-14 bg-surface-container-high rounded-full flex items-center justify-center text-primary-container shrink-0">
+<span class="material-symbols-outlined text-3xl">baby_changing_station</span>
+</div>
+<div class="flex-1">
+<div class="flex justify-between items-start mb-1">
+<h4 class="font-bold text-on-surface">Sow, Amadou</h4>
+<span class="text-[10px] font-bold py-1 px-3 bg-secondary-fixed text-on-secondary-fixed-variant rounded-full uppercase tracking-tighter">Blockchain Validée</span>
+</div>
+<div class="flex items-center gap-4 text-xs text-on-surface-variant font-medium">
+<span class="flex items-center gap-1"><span class="material-symbols-outlined text-[14px]">schedule</span>Il y a 45 min</span>
+<span class="flex items-center gap-1"><span class="material-symbols-outlined text-[14px]">location_on</span>Centre Médical Kaloum</span>
+</div>
+</div>
+</div>
+<!-- Activity Item (Syncing) -->
+<div class="flex items-center gap-6 p-5 bg-surface-container-lowest rounded-2xl border-l-4 border-primary/40 shadow-sm">
+<div class="w-14 h-14 bg-primary-container/10 rounded-full flex items-center justify-center text-primary shrink-0">
+<span class="material-symbols-outlined text-3xl animate-spin">sync</span>
+</div>
+<div class="flex-1">
+<div class="flex justify-between items-start mb-1">
+<h4 class="font-bold text-on-surface italic">Enregistrement en cours...</h4>
+<span class="text-[10px] font-bold py-1 px-3 bg-tertiary-fixed text-on-tertiary-fixed-variant rounded-full uppercase tracking-tighter">Sync...</span>
+</div>
+<div class="flex items-center gap-4 text-xs text-on-surface-variant font-medium">
+<span class="flex items-center gap-1 font-bold text-primary">Traitement sécurisé du certificat #NC-2024-9182</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Stats/Graph Sidebar -->
+<div class="lg:col-span-4">
+<div class="bg-surface-container-highest p-8 rounded-3xl h-full flex flex-col">
+<h3 class="text-lg font-extrabold mb-6 tracking-tight">Répartition Hebdomadaire</h3>
+<div class="flex-1 flex items-end justify-between gap-2 h-40 mb-8">
+<div class="w-full bg-primary-container/20 rounded-t-lg h-[40%]"></div>
+<div class="w-full bg-primary-container/20 rounded-t-lg h-[65%]"></div>
+<div class="w-full bg-primary-container/20 rounded-t-lg h-[45%]"></div>
+<div class="w-full bg-primary-container/20 rounded-t-lg h-[90%]"></div>
+<div class="w-full bg-primary h-[100%] rounded-t-lg relative">
+<div class="absolute -top-8 left-1/2 -translate-x-1/2 text-[10px] font-bold bg-on-surface text-white px-2 py-1 rounded">24</div>
+</div>
+<div class="w-full bg-primary-container/20 rounded-t-lg h-[30%]"></div>
+<div class="w-full bg-primary-container/20 rounded-t-lg h-[50%]"></div>
+</div>
+<div class="space-y-4">
+<div class="p-4 bg-surface-container-lowest rounded-xl flex items-center justify-between">
+<span class="text-xs font-bold uppercase text-on-surface-variant">Taux de succès</span>
+<span class="font-extrabold text-primary">99.8%</span>
+</div>
+<div class="p-4 bg-surface-container-lowest rounded-xl flex items-center justify-between">
+<span class="text-xs font-bold uppercase text-on-surface-variant">Temps moyen</span>
+<span class="font-extrabold text-primary">2.4 min</span>
+</div>
+</div>
+<div class="mt-auto pt-8">
+<div class="relative rounded-2xl overflow-hidden aspect-video group cursor-pointer">
+<img alt="Blockchain visual" class="object-cover w-full h-full brightness-50 group-hover:scale-105 transition-transform duration-500" data-alt="close-up of a digital tablet screen showing a complex blockchain node network diagram in shades of emerald green" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAUAjxUJwCHlmydZqWuurswfBSaWkLHPsJoajxB-i-K90nynoDa232xtI_e66AbCo8FXPK-xfETcQ255c6jzOEs33G9n-RFRAMk6QBqXPUcbO9J8Ctzm9arSJvVPC1P8Vu_MOYTFq0NqcKsdR4KxRYVD0KxdNtuBNZFXr0jbMQEDGXdBC60anG55TBD5lqh7P6hl2PBL0NgaxT6jnJcpSy40uj_dTxr6K3X57LEen6joNv82bWv7LyXq0F0RmmSnLX4VliafHAoTqo"/>
+<div class="absolute inset-0 flex flex-col justify-end p-4">
+<p class="text-[10px] font-bold text-primary-fixed uppercase tracking-widest mb-1">Sécurité de pointe</p>
+<p class="text-white text-xs font-medium leading-tight">Chaque acte est gravé sur la Blockchain Souveraine de Guinée.</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+</section>
+</main>
+<!-- BottomNavBar -->
+<nav class="fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-4 pb-8 pt-4 bg-white/85 dark:bg-slate-900/85 backdrop-blur-2xl shadow-[0_-12px_32px_rgba(0,52,109,0.04)] rounded-t-[2rem]">
+<a class="flex flex-col items-center justify-center bg-emerald-100/80 dark:bg-emerald-800/40 text-emerald-900 dark:text-emerald-50 rounded-2xl px-5 py-2.5 transition-all active:scale-90 duration-300 ease-out" href="#">
+<span class="material-symbols-outlined" data-weight="fill" style="font-variation-settings: 'FILL' 1;">home</span>
+<span class="font-manrope text-[11px] font-semibold uppercase tracking-widest mt-1">Accueil</span>
+</a>
+<a class="flex flex-col items-center justify-center text-slate-400 dark:text-slate-500 px-5 py-2.5 hover:bg-emerald-50 dark:hover:bg-emerald-800/20 active:scale-90 duration-300 ease-out" href="#">
+<span class="material-symbols-outlined">family_restroom</span>
+<span class="font-manrope text-[11px] font-semibold uppercase tracking-widest mt-1">Famille</span>
+</a>
+<a class="flex flex-col items-center justify-center text-slate-400 dark:text-slate-500 px-5 py-2.5 hover:bg-emerald-50 dark:hover:bg-emerald-800/20 active:scale-90 duration-300 ease-out" href="#">
+<span class="material-symbols-outlined">grid_view</span>
+<span class="font-manrope text-[11px] font-semibold uppercase tracking-widest mt-1">Services</span>
+</a>
+<a class="flex flex-col items-center justify-center text-slate-400 dark:text-slate-500 px-5 py-2.5 hover:bg-emerald-50 dark:hover:bg-emerald-800/20 active:scale-90 duration-300 ease-out" href="#">
+<span class="material-symbols-outlined">person</span>
+<span class="font-manrope text-[11px] font-semibold uppercase tracking-widest mt-1">Profil</span>
+</a>
+</nav>
+<!-- FAB for Quick Start (Primary Action) -->
+<button class="fixed bottom-28 right-6 w-14 h-14 bg-primary text-on-primary rounded-full shadow-2xl flex items-center justify-center z-40 active:scale-90 duration-200">
+<span class="material-symbols-outlined text-3xl">add</span>
+</button>
+</body></html>

@@ -1,0 +1,38 @@
+{
+  "expo": {
+    "name": "mobile",
+    "slug": "mobile",
+    "scheme": "naissancechain",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "newArchEnabled": true,
+    "splash": {
+      "image": "./assets/splash-icon.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#ffffff"
+    },
+    "ios": {
+      "supportsTablet": true
+    },
+    "android": {
+      "package": "com.naissancechain.app",
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#ffffff"
+      },
+      "edgeToEdgeEnabled": true,
+      "predictiveBackGestureEnabled": false
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    },
+    "plugins": [],
+    "extra": {
+      "eas": {
+        "projectId": "a40a60c5-6a80-48e9-8efc-bd26b85d3718"
+      }
+    }
+  }
+}

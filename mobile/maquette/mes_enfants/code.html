@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+
+<html class="light" lang="fr"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@200;300;400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "on-tertiary-fixed-variant": "#304d39",
+                        "on-secondary": "#ffffff",
+                        "surface-container": "#e9f0ea",
+                        "error-container": "#ffdad6",
+                        "inverse-primary": "#59de9b",
+                        "on-secondary-container": "#496758",
+                        "surface-bright": "#f4fbf6",
+                        "surface-tint": "#006d43",
+                        "tertiary": "#47654f",
+                        "on-secondary-fixed-variant": "#2f4d3f",
+                        "on-tertiary-fixed": "#032110",
+                        "on-primary-fixed": "#002111",
+                        "on-background": "#161d1a",
+                        "surface-container-high": "#e3eae5",
+                        "outline-variant": "#bccabe",
+                        "on-surface": "#161d1a",
+                        "tertiary-container": "#7b9b83",
+                        "on-secondary-fixed": "#022115",
+                        "primary-fixed-dim": "#59de9b",
+                        "secondary-container": "#c3e5d2",
+                        "primary-fixed": "#78fbb6",
+                        "on-surface-variant": "#3d4a41",
+                        "surface-container-low": "#eff5f0",
+                        "on-tertiary": "#ffffff",
+                        "primary": "#006d43",
+                        "tertiary-fixed-dim": "#adcfb4",
+                        "surface-dim": "#d5dcd7",
+                        "on-primary": "#ffffff",
+                        "inverse-surface": "#2b322f",
+                        "surface-variant": "#dde4df",
+                        "secondary": "#466556",
+                        "secondary-fixed": "#c8ead7",
+                        "on-error-container": "#93000a",
+                        "inverse-on-surface": "#ecf2ed",
+                        "surface-container-lowest": "#ffffff",
+                        "on-error": "#ffffff",
+                        "error": "#ba1a1a",
+                        "on-primary-fixed-variant": "#005232",
+                        "on-tertiary-container": "#153220",
+                        "secondary-fixed-dim": "#adcebc",
+                        "tertiary-fixed": "#c9ebcf",
+                        "on-primary-container": "#00331d",
+                        "surface-container-highest": "#dde4df",
+                        "surface": "#f4fbf6",
+                        "outline": "#6d7a70",
+                        "background": "#f4fbf6",
+                        "primary-container": "#00a86b"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.125rem",
+                        "lg": "0.25rem",
+                        "xl": "0.5rem",
+                        "full": "0.75rem"
+                    },
+                    "fontFamily": {
+                        "headline": ["Manrope"],
+                        "body": ["Manrope"],
+                        "label": ["Manrope"]
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        body { font-family: 'Manrope', sans-serif; }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .glass-nav {
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-surface text-on-surface min-h-screen pb-32">
+<!-- TopAppBar -->
+<header class="w-full sticky top-0 z-50 bg-[#f7f9fb]/90 dark:bg-slate-950/90 backdrop-blur-xl shadow-sm bg-emerald-50/50 dark:bg-emerald-900/10">
+<div class="flex justify-between items-center px-6 py-4 w-full">
+<div class="flex items-center gap-3">
+<span class="text-emerald-900 dark:text-emerald-100 font-extrabold tracking-tighter text-xl">NaissanceChain</span>
+</div>
+<div class="flex items-center gap-4">
+<button class="p-2 text-emerald-800 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 transition-colors active:scale-95 duration-200">
+<span class="material-symbols-outlined" data-icon="notifications">notifications</span>
+</button>
+</div>
+</div>
+</header>
+<main class="max-w-5xl mx-auto px-6 py-8">
+<!-- Hero Header -->
+<section class="mb-12">
+<h1 class="text-headline-lg font-bold text-on-surface tracking-tight text-4xl mb-2">Mes Enfants</h1>
+<p class="text-on-surface-variant text-lg max-w-2xl leading-relaxed">Gérez les registres numériques de naissance de votre famille en toute sécurité. Accédez aux actes officiels et suivez les mises à jour administratives.</p>
+</section>
+<!-- Bento Grid for Children Cards -->
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+<!-- Child Card 1: Mamadou -->
+<div class="bg-surface-container-lowest rounded-[2rem] overflow-hidden shadow-[0_12px_32px_-4px_rgba(22,29,26,0.08)] transition-transform hover:-translate-y-1 duration-300 group">
+<div class="relative h-48 w-full overflow-hidden">
+<img alt="Portrait of a smiling young boy" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" data-alt="Close-up portrait of a cheerful young boy with a warm smile in soft natural daylight, vibrant green background" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDO_CD5cTXtwDzGvi8s3kresYcIXhSEvJ_WDAZkHRbWqVDyvpF-DDMREikwSAo2Y8ve-fNfoQ4uOL1L7O0VGYcP-yMmJnkI5pzxUf3EsKPbSlVPRleUyfA--MOcnJ6J1ZPLapX11IgJ_6dSLvk9Ebcr_bV4tJ-BoyLU6gwl5TsY6Bi-Lh7IJR-T_Mfn2ZYtv1KTuoEIcjOPb7dN1ot0k2dilmFxtM7s1cSEk0-MQF-aajRGaCpoK8qvLV2lTXfhTDwH_NAIAL3f548"/>
+<div class="absolute top-4 right-4 bg-primary text-white text-[10px] font-bold px-3 py-1 rounded-full tracking-widest uppercase shadow-lg">Certifié</div>
+</div>
+<div class="p-6">
+<div class="flex justify-between items-start mb-4">
+<div>
+<h3 class="text-xl font-bold text-on-surface tracking-tight">Mamadou Diallo</h3>
+<p class="text-on-surface-variant text-sm font-medium">Né le 12 Mars 2018</p>
+</div>
+</div>
+<div class="space-y-3 mb-6">
+<div class="flex items-center gap-3 text-on-surface-variant text-sm">
+<span class="material-symbols-outlined text-primary text-lg" data-icon="location_on">location_on</span>
+<span>Conakry, Guinée</span>
+</div>
+<div class="flex items-center gap-3 text-on-surface-variant text-sm">
+<span class="material-symbols-outlined text-primary text-lg" data-icon="fingerprint">fingerprint</span>
+<span>ID: NC-2018-0492-X</span>
+</div>
+</div>
+<button class="w-full bg-primary hover:bg-primary-container text-white font-bold py-4 px-6 rounded-xl flex items-center justify-center gap-2 transition-all active:scale-95 shadow-lg shadow-primary/20">
+<span class="material-symbols-outlined" data-icon="description">description</span>
+                        Voir l'acte
+                    </button>
+</div>
+</div>
+<!-- Child Card 2: Fatoumata -->
+<div class="bg-surface-container-lowest rounded-[2rem] overflow-hidden shadow-[0_12px_32px_-4px_rgba(22,29,26,0.08)] transition-transform hover:-translate-y-1 duration-300 group">
+<div class="relative h-48 w-full overflow-hidden">
+<img alt="Portrait of a young girl with braided hair" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" data-alt="Delicate portrait of a young girl with beautiful braids, laughing in a sunlit garden with lush green foliage" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCBRtQBrrf-c5Y6PtK8tUiqS_Rq4MuvypVghiXfJ-7fiY6XXIYmKE8SOM-NhpP0Pwe9V0DPQWVuW1y0oFQ8c6Mf0IA_jVe2zETDdqK34XwFm54ckKPrBUYSjBShmirlIWCNevE1yaeXE6ztvJuqPyzSnEURXE65ONFVLD2j0hJo9c2BGwtmevUTtxWLHAc4LvEf2WhNxX3kU7ccVkzlZPjYsRWqqeuB3cqFlwxPeikf91GhnNbkg333i6AYvtj3T1dPdYXvbpV6yyc"/>
+<div class="absolute top-4 right-4 bg-primary text-white text-[10px] font-bold px-3 py-1 rounded-full tracking-widest uppercase shadow-lg">Certifié</div>
+</div>
+<div class="p-6">
+<div class="flex justify-between items-start mb-4">
+<div>
+<h3 class="text-xl font-bold text-on-surface tracking-tight">Fatoumata Camara</h3>
+<p class="text-on-surface-variant text-sm font-medium">Née le 05 Août 2021</p>
+</div>
+</div>
+<div class="space-y-3 mb-6">
+<div class="flex items-center gap-3 text-on-surface-variant text-sm">
+<span class="material-symbols-outlined text-primary text-lg" data-icon="location_on">location_on</span>
+<span>Kindia, Guinée</span>
+</div>
+<div class="flex items-center gap-3 text-on-surface-variant text-sm">
+<span class="material-symbols-outlined text-primary text-lg" data-icon="fingerprint">fingerprint</span>
+<span>ID: NC-2021-9812-Y</span>
+</div>
+</div>
+<button class="w-full bg-primary hover:bg-primary-container text-white font-bold py-4 px-6 rounded-xl flex items-center justify-center gap-2 transition-all active:scale-95 shadow-lg shadow-primary/20">
+<span class="material-symbols-outlined" data-icon="description">description</span>
+                        Voir l'acte
+                    </button>
+</div>
+</div>
+<!-- Asymmetric Empty/Add State -->
+<div class="bg-emerald-100/30 border-2 border-dashed border-primary/20 rounded-[2rem] flex flex-col items-center justify-center p-8 text-center min-h-[400px]">
+<div class="w-20 h-20 bg-emerald-100 rounded-full flex items-center justify-center mb-4 text-primary">
+<span class="material-symbols-outlined text-4xl" data-icon="add_reaction">add_reaction</span>
+</div>
+<h3 class="text-lg font-bold text-on-surface mb-2">Nouvel Enregistrement</h3>
+<p class="text-on-surface-variant text-sm mb-6 max-w-[200px]">Enregistrez un nouveau membre de la famille dans le registre national.</p>
+<button class="bg-white text-primary border-2 border-primary/10 px-6 py-3 rounded-xl font-bold text-sm hover:bg-emerald-50 transition-colors">
+                    Démarrer l'inscription
+                </button>
+</div>
+</div>
+<!-- System Status Banner (Monolith Style) -->
+<section class="mt-12 p-8 bg-surface-container rounded-[2rem]">
+<div class="flex flex-col md:flex-row items-center gap-8">
+<div class="flex-shrink-0">
+<span class="material-symbols-outlined text-primary text-6xl" data-icon="security" data-weight="fill">security</span>
+</div>
+<div>
+<h2 class="text-2xl font-bold text-on-surface mb-2">Sécurité Souveraine</h2>
+<p class="text-on-surface-variant leading-relaxed">Vos données sont protégées par le protocole d'État NaissanceChain. Chaque acte est horodaté et signé numériquement par les autorités compétentes de la République de Guinée.</p>
+</div>
+</div>
+</section>
+</main>
+<!-- Floating Action Button (FAB) -->
+<button class="fixed bottom-32 right-6 md:right-12 z-40 bg-gradient-to-br from-primary to-primary-container text-white w-16 h-16 rounded-2xl flex items-center justify-center shadow-[0_12px_32px_rgba(0,109,67,0.3)] active:scale-90 transition-transform duration-200">
+<span class="material-symbols-outlined text-3xl" data-icon="add">add</span>
+</button>
+<!-- BottomNavBar -->
+<nav class="fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-4 pb-8 pt-4 bg-white/85 dark:bg-slate-900/85 backdrop-blur-2xl shadow-[0_-12px_32px_rgba(0,52,109,0.04)] rounded-t-[2rem]">
+<!-- Home -->
+<a class="flex flex-col items-center justify-center text-slate-400 dark:text-slate-500 px-5 py-2.5 hover:bg-emerald-50 dark:hover:bg-emerald-800/20 active:scale-90 duration-300 ease-out" href="#">
+<span class="material-symbols-outlined mb-1" data-icon="home">home</span>
+<span class="font-manrope text-[11px] font-semibold uppercase tracking-widest">Accueil</span>
+</a>
+<!-- Famille (Active) -->
+<a class="flex flex-col items-center justify-center bg-emerald-100/80 dark:bg-emerald-800/40 text-emerald-900 dark:text-emerald-50 rounded-2xl px-5 py-2.5 transition-all active:scale-90 duration-300 ease-out" href="#">
+<span class="material-symbols-outlined mb-1" data-icon="family_restroom">family_restroom</span>
+<span class="font-manrope text-[11px] font-semibold uppercase tracking-widest">Famille</span>
+</a>
+<!-- Services -->
+<a class="flex flex-col items-center justify-center text-slate-400 dark:text-slate-500 px-5 py-2.5 hover:bg-emerald-50 dark:hover:bg-emerald-800/20 active:scale-90 duration-300 ease-out" href="#">
+<span class="material-symbols-outlined mb-1" data-icon="grid_view">grid_view</span>
+<span class="font-manrope text-[11px] font-semibold uppercase tracking-widest">Services</span>
+</a>
+<!-- Profil -->
+<a class="flex flex-col items-center justify-center text-slate-400 dark:text-slate-500 px-5 py-2.5 hover:bg-emerald-50 dark:hover:bg-emerald-800/20 active:scale-90 duration-300 ease-out" href="#">
+<span class="material-symbols-outlined mb-1" data-icon="person">person</span>
+<span class="font-manrope text-[11px] font-semibold uppercase tracking-widest">Profil</span>
+</a>
+</nav>
+</body></html>
