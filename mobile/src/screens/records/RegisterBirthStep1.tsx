@@ -15,23 +15,6 @@ import { MaterialIcons, Ionicons } from '@expo/vector-icons';
 import { Colors } from '../../theme/colors';
 import { useBirthForm } from '../../store/BirthContext';
 
-// Composant de sélection rapide
-const SelectionGrid = ({ label, options, selectedValue, onSelect }: any) => (
-  <View style={styles.field}>
-    <Text style={styles.fieldLabel}>{label}</Text>
-    <View style={styles.gridRow}>
-      {options.map((opt: any) => (
-        <TouchableOpacity 
-          key={opt.value} 
-          style={[styles.gridItem, selectedValue === opt.value && styles.gridItemActive]} 
-          onPress={() => onSelect(opt.value)}
-        >
-          <Text style={[styles.gridItemText, selectedValue === opt.value && styles.gridItemTextActive]}>{opt.label}</Text>
-        </TouchableOpacity>
-      ))}
-    </View>
-  </View>
-);
 
 export const RegisterBirthStep1 = ({ navigation }: any) => {
   const { formData, updateFormData } = useBirthForm();

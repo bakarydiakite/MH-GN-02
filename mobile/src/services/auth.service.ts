@@ -8,6 +8,7 @@ export interface User {
   nom: string;
   prenom?: string;
   role: 'ADMINISTRATEUR' | 'SUPERVISEUR' | 'VERIFICATEUR' | 'AGENT' | 'FAMILLE';
+  photoUrl?: string;
 }
 
 export interface AuthResponse {
@@ -21,6 +22,7 @@ export interface IAuthService {
   logout(): Promise<void>;
   getToken(): Promise<string | null>;
   getUser(): Promise<User | null>;
+  googleLogin(idToken: string): Promise<AuthResponse>;
 }
 
 class AuthService implements IAuthService {
@@ -94,6 +96,12 @@ class AuthService implements IAuthService {
   async getUser(): Promise<User | null> {
     const userStr = await AsyncStorage.getItem('user');
     return userStr ? JSON.parse(userStr) : null;
+  }
+
+  async googleLogin(idToken: string): Promise<AuthResponse> {
+    // Placeholder for Google Login - to be implemented with Expo Auth Session
+    console.log('Google Login with token:', idToken);
+    throw new Error('Google Login non configuré sur ce build');
   }
 }
 

@@ -50,7 +50,7 @@ export const FamilleAccueilScreen = () => {
 
   return (
     <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="dark-content" backgroundColor={Colors.background} />
+      <StatusBar style="dark" backgroundColor={Colors.background} />
 
       {/* Top Bar */}
       <View style={styles.topBar}>
@@ -93,7 +93,7 @@ export const FamilleAccueilScreen = () => {
 
         {/* Section: Mes Enfants */}
         <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle}>Mes Enfants</Text>
+          <Text style={styles.childrenSectionTitle}>Mes Enfants</Text>
           <TouchableOpacity onPress={() => navigation.navigate('MesEnfants')}>
             <Text style={styles.seeAll}>Voir tout</Text>
           </TouchableOpacity>
@@ -544,7 +544,7 @@ const styles = StyleSheet.create({
     marginBottom: 15,
     paddingHorizontal: 20,
   },
-  sectionTitle: {
+  childrenSectionTitle: {
     fontSize: 18,
     fontWeight: '800',
     color: Colors.onSurface,
