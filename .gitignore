@@ -1,0 +1,60 @@
+# --- GLOBAL MONOREPO GITIGNORE ---
+
+# Dependencies
+**/node_modules/
+**/package-lock.json
+**/yarn.lock
+**/pnpm-lock.yaml
+
+# Compiled / Build outputs
+**/dist/
+**/build/
+**/out/
+**/coverage/
+.temp/
+.tmp/
+
+# Environment Variables (CRITICAL: NEVER PUSH THESE)
+**/.env
+**/.env.*
+!**/.env.example
+
+# OS Files
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+
+# IDEs
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+
+# --- BACKEND SPECIFIC ---
+backend/dist/
+backend/logs/
+*.log
+
+# --- MOBILE SPECIFIC (Expo/React Native) ---
+mobile/.expo/
+mobile/web-build/
+mobile/expo-env.d.ts
+mobile/ios/
+mobile/android/
+*.jks
+*.p8
+*.p12
+*.key
+*.mobileprovision
+
+# --- BLOCKCHAIN SPECIFIC (Hardhat) ---
+blockchain/artifacts/
+blockchain/cache/
+blockchain/typechain/
+blockchain/typechain-types/
+
+# --- FRONTEND SPECIFIC ---
+Frontend/.next/
+Frontend/out/
+Frontend/dist/
