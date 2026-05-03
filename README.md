@@ -318,7 +318,7 @@ npm run test:cov
 
 | Rôle | Email | Mot de passe |
 |------|-------|--------------|
-| Agent | agent@naissancechain.gn | Agent@2026! |
+| Agent | agent@naissancechain.gn | Agent@2026 |
 | Superviseur | superviseur@naissancechain.gn | Sup@2026! |
 | Admin | admin@naissancechain.gn | Admin@2026! |
 
