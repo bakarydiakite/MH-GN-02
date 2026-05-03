@@ -1,6 +1,0 @@
-[INSÉRER VOTRE LIEN VIDÉO ICI]
-
-Exemple: https://youtube.com/watch?v=xxxxx
-ou: https://drive.google.com/file/d/xxxxx
-
-Vidéo de démonstration de l'application NaissanceChain.
