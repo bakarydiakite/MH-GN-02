@@ -173,6 +173,21 @@ export class BirthsService {
   async findAll(filters: any) {
     const { limit, userId, ...where } = filters;
     
+    // Mode démo sans authentification : retourner tous les enregistrements
+    if (!userId) {
+      const records = await this.prisma.birthRecord.findMany({
+        where: { ...where },
+        take: limit ? parseInt(limit) : undefined,
+        orderBy: { createdAt: 'desc' },
+        include: {
+          enfant: true,
+          agent: { include: { user: { select: { nom: true, prenom: true } } } },
+        },
+      });
+      console.log(`[BirthsService] Demo mode - Found ${records.length} records`);
+      return records;
+    }
+
     // 1. Déterminer le rôle et le profil de l'utilisateur
     const user = await this.prisma.user.findUnique({
       where: { id: userId },

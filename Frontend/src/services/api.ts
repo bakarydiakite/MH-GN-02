@@ -10,12 +10,11 @@ export const apiService = {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
-          // Note : On ajoutera le token d'authentification ici plus tard
         },
       });
 
       if (!response.ok) {
-        throw new Error('Erreur lors de la récupération des stats');
+        throw new Error(`Erreur HTTP: ${response.status}`);
       }
 
       return await response.json();
@@ -31,7 +30,24 @@ export const apiService = {
   async getBirths() {
     try {
       const response = await fetch(`${API_BASE_URL}/births`);
-      return await response.json();
+      
+      if (!response.ok) {
+        throw new Error(`Erreur HTTP: ${response.status}`);
+      }
+      
+      const data = await response.json();
+      
+      // S'assurer que data est un tableau
+      if (Array.isArray(data)) {
+        return data;
+      }
+      // Si data a une propriété data qui est un tableau
+      if (data && Array.isArray(data.data)) {
+        return data.data;
+      }
+      // Sinon retourner un tableau vide
+      console.warn('getBirths: réponse inattendue', data);
+      return [];
     } catch (error) {
       console.error('Erreur getBirths:', error);
       return [];

@@ -11,9 +11,9 @@ export class StatsController {
 
   // @UseGuards(JwtAuthGuard, RolesGuard)
   // @Roles(UserRole.ADMINISTRATEUR, UserRole.SUPERVISEUR)
-  @UseGuards(JwtAuthGuard)
+  // @UseGuards(JwtAuthGuard) // Désactivé pour la démo
   @Get('dashboard')
   getDashboardStats(@Request() req: any) {
-    return this.statsService.getDashboardStats(req.user.userId);
+    return this.statsService.getDashboardStats(null); // null pour userId (pas d'auth)
   }
 }

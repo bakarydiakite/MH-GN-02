@@ -1,14 +1,32 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../shared/prisma/prisma.service';
-import { BirthStatus } from '@prisma/client';
 
 @Injectable()
 export class StatsService {
   constructor(private prisma: PrismaService) {}
 
-  async getDashboardStats(userId: string) {
+  async getDashboardStats(userId: string | null) {
     console.log(`[StatsService] DASHBOARD_REQUEST for userId: ${userId}`);
     
+    // Si pas d'userId (mode démo sans auth), retourner les stats globales
+    if (!userId) {
+      const total = await this.prisma.birthRecord.count();
+      const pending = await this.prisma.birthRecord.count({
+        where: { statut: 'EN_ATTENTE' }
+      });
+      const validated = await this.prisma.birthRecord.count({
+        where: { statut: 'VALIDE' }
+      });
+      
+      const now = new Date();
+      const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+      const totalMois = await this.prisma.birthRecord.count({
+        where: { createdAt: { gte: startOfMonth } }
+      });
+      
+      return { total, totalMois, pending, validated };
+    }
+
     const user = await this.prisma.user.findUnique({
       where: { id: userId },
       include: { agent: true }

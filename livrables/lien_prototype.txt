@@ -1,0 +1,10 @@
+https://appetize.io/app/b_mdnrmjw5vyq3iwuskugprq7wna
+
+Application mobile NaissanceChain - Prototype fonctionnel
+Plateforme: Android
+Version: 1.0.0
+
+Instructions:
+- Cliquez sur le lien pour lancer l'application dans le navigateur
+- Session limitée à 2-3 minutes (plan gratuit)
+- Relancez une nouvelle session si nécessaire
