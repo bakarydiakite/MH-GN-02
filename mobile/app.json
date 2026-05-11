@@ -32,7 +32,8 @@
     "extra": {
       "eas": {
         "projectId": "a40a60c5-6a80-48e9-8efc-bd26b85d3718"
-      }
+      },
+      "apiBaseUrl": "https://naissancechain-api.onrender.com"
     }
   }
 }

@@ -3,8 +3,10 @@
  */
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { uploadService } from './upload.service';
+import { API_BASE_URL } from '../config/api.config';
 
-const API_URL = 'https://naissancechain-api.onrender.com';
+// const API_URL = 'https://naissancechain-api.onrender.com';
+const API_URL = API_BASE_URL;
 
 export interface CreateBirthData {
   // --- ENFANT ---
@@ -91,8 +93,11 @@ class BirthService {
       });
 
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || 'Erreur lors de l\'enregistrement');
+        if (response.status === 401) {
+          throw new Error('Unauthorized');
+        }
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.message || `Erreur serveur (${response.status})`);
       }
       return await response.json();
     } catch (error) {
@@ -210,6 +215,17 @@ class BirthService {
 
         // 2. Envoi au backend
         const token = await AsyncStorage.getItem('token');
+        
+        // Nettoyage des données pour le DTO du backend
+        const { id_local, status, attachments, ...cleanDraft } = draft;
+
+        // Helper pour convertir JJ/MM/AAAA -> AAAA-MM-DD
+        const toIsoDate = (dateStr?: string) => {
+          if (!dateStr || !dateStr.includes('/')) return dateStr;
+          const [d, m, y] = dateStr.split('/');
+          return `${y}-${m}-${d}`;
+        };
+        
         const response = await fetch(`${API_URL}/births`, {
           method: 'POST',
           headers: {
@@ -217,21 +233,33 @@ class BirthService {
             'Authorization': `Bearer ${token}`
           },
           body: JSON.stringify({
-            ...draft,
+            ...cleanDraft,
             ...uploadedPhotos,
-            secteurParents: draft.secteurParents // Déjà corrigé dans le draft
+            dateNaissanceEnfant: toIsoDate(cleanDraft.dateNaissanceEnfant),
+            dateNaissanceMere: toIsoDate(cleanDraft.dateNaissanceMere),
+            dateNaissancePere: toIsoDate(cleanDraft.dateNaissancePere),
           })
         });
 
         if (!response.ok) {
-          throw new Error('Erreur serveur');
+          // Erreur d'authentification - arrêter la sync
+          if (response.status === 401) {
+            throw new Error('Unauthorized');
+          }
+          const errorData = await response.json().catch(() => ({}));
+          throw new Error(errorData.message || `Erreur serveur (${response.status})`);
         }
 
         // 3. Suppression du brouillon si succès
         await this.deleteDraft(draft.id_local);
         successCount++;
-      } catch (error) {
-        console.error(`[BirthService] Sync failed for draft ${draft.id_local}:`, error);
+      } catch (error: any) {
+        console.error(`Sync failed for draft ${draft.id_local}:`, error);
+        
+        // Si erreur d'authentification, arrêter la sync
+        if (error.message === 'Unauthorized') {
+          throw error;
+        }
         failedCount++;
       }
 

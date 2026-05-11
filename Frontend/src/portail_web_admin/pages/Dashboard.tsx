@@ -13,24 +13,50 @@ import {
   CheckCircle2
 } from 'lucide-react';
 import { apiService } from '../../services/api';
+import { useAuth } from '../../contexts/AuthContext';
 
-// Données fictives pour les enregistrements récents (en attendant l'API complète)
-const recentRecordsMock = [
-  { id: 'NC-2024-001847', name: 'Bakary Diakite', region: 'Conakry, Matoto', agent: 'Kemoko Dioubate', status: 'Vérifié', date: '14 avr. 2024' },
-  { id: 'NC-2024-001848', name: 'Aminata Camara', region: 'Conakry, Kaloum', agent: 'Ibrahima Sow', status: 'En attente', date: '14 mars 2024' },
-  { id: 'NC-2024-001849', name: 'Oumar Bah', region: 'Labé, Centre', agent: 'Mariama Kouyaté', status: 'Vérifié', date: '10 mars 2024' },
-  { id: 'NC-2024-001850', name: 'Fatoumata Diallo', region: 'Kindia, Ville', agent: 'Abdoulaye Sylla', status: 'Vérifié', date: '08 mars 2024' },
-];
+interface RecentRecord {
+  id: string;
+  identifiantUniqueNational: string;
+  enfant: {
+    prenoms: string;
+    nom: string;
+  };
+  center?: {
+    nom: string;
+    prefecture?: {
+      nom: string;
+      region: string;
+    };
+  };
+  agent?: {
+    user?: {
+      nom: string;
+      prenom: string;
+    };
+  };
+  statut: string;
+  createdAt: string;
+}
+
+// Permissions par rôle
+const isAdmin = (role: string) => role === 'ADMINISTRATEUR';
+const isSuperviseur = (role: string) => role === 'SUPERVISEUR';
+const isVerificateur = (role: string) => role === 'VERIFICATEUR';
 
 export default function Dashboard() {
+  const { user } = useAuth();
+  const userRole = user?.role || 'VERIFICATEUR';
+  
   const [stats, setStats] = useState<any[]>([]);
+  const [recentRecords, setRecentRecords] = useState<RecentRecord[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const fetchStats = async () => {
+    const fetchData = async () => {
       try {
+        // Charger les stats
         const data = await apiService.getDashboardStats();
-        // Transformation des données API pour correspondre au format des cartes
         const mappedStats = [
           {
             label: 'Total Enregistrements',
@@ -43,7 +69,7 @@ export default function Dashboard() {
           },
           {
             label: 'Dossiers Vérifiés',
-            value: data.anchoredOnBlockchain?.toLocaleString() || '0',
+            value: data.validated?.toLocaleString() || '0',
             change: '+8.2% ce mois',
             isPositive: true,
             icon: ShieldCheck,
@@ -61,9 +87,13 @@ export default function Dashboard() {
           }
         ];
         setStats(mappedStats);
+
+        // Charger les enregistrements récents
+        const births = await apiService.getBirths();
+        const recent = births.slice(0, 5); // 5 derniers
+        setRecentRecords(recent);
       } catch (error) {
-        console.error("Erreur chargement stats:", error);
-        // Fallback sur des données vides en cas d'erreur
+        console.error("Erreur chargement données:", error);
         setStats([
           { label: 'Total Enregistrements', value: '0', change: '...', isPositive: true, icon: Users, color: '#6366F1', path: '/admin/records' },
           { label: 'Dossiers Vérifiés', value: '0', change: '...', isPositive: true, icon: ShieldCheck, color: '#10B981', path: '/admin/verification' },
@@ -74,7 +104,7 @@ export default function Dashboard() {
       }
     };
 
-    fetchStats();
+    fetchData();
   }, []);
 
   return (
@@ -86,10 +116,12 @@ export default function Dashboard() {
           animate={{ opacity: 1, y: 0 }}
           style={{ fontSize: 32, fontWeight: 800, color: '#1E293B', marginBottom: 8 }}
         >
-          Bon après-midi, Admin !
+          Bonjour, {user?.prenom || user?.nom || 'Utilisateur'} !
         </motion.h1>
         <p style={{ color: '#64748B', fontSize: 16 }}>
-          Suivez les enregistrements et vérifiez les dossiers en temps réel.
+          {userRole === 'ADMINISTRATEUR' && 'Gérez le système et supervisez les opérations.'}
+          {userRole === 'SUPERVISEUR' && 'Validez les actes en attente et supervisez les agents.'}
+          {userRole === 'VERIFICATEUR' && 'Consultez et vérifiez les dossiers d\'actes.'}
         </p>
       </div>
 
@@ -230,24 +262,38 @@ export default function Dashboard() {
                 </tr>
               </thead>
               <tbody>
-                {recentRecordsMock.map((record, i) => (
-                  <tr key={record.id} style={{ borderBottom: i === recentRecordsMock.length - 1 ? 'none' : '1px solid #F8FAFC' }}>
-                    <td style={{ padding: '20px 8px' }}>
-                      <span style={{ fontWeight: 600, color: '#1E293B' }}>{record.name}</span>
+                {recentRecords.length === 0 ? (
+                  <tr>
+                    <td colSpan={4} style={{ padding: 40, textAlign: 'center', color: '#64748B' }}>
+                      Aucun enregistrement trouvé
                     </td>
-                    <td style={{ padding: '20px 8px', color: '#64748B', fontSize: 14 }}>{record.id}</td>
-                    <td style={{ padding: '20px 8px' }}>
-                      <span style={{ 
-                        padding: '4px 12px', borderRadius: 20, fontSize: 12, fontWeight: 600,
-                        background: record.status === 'Vérifié' ? '#ECFDF5' : '#FFFBEB',
-                        color: record.status === 'Vérifié' ? '#10B981' : '#F59E0B'
-                      }}>
-                        {record.status}
-                      </span>
-                    </td>
-                    <td style={{ padding: '20px 8px', color: '#64748B', fontSize: 14 }}>{record.date}</td>
                   </tr>
-                ))}
+                ) : (
+                  recentRecords.map((record, i) => (
+                    <tr key={record.id} style={{ borderBottom: i === recentRecords.length - 1 ? 'none' : '1px solid #F8FAFC' }}>
+                      <td style={{ padding: '20px 8px' }}>
+                        <span style={{ fontWeight: 600, color: '#1E293B' }}>
+                          {record.enfant?.prenoms} {record.enfant?.nom}
+                        </span>
+                      </td>
+                      <td style={{ padding: '20px 8px', color: '#64748B', fontSize: 14 }}>
+                        {record.identifiantUniqueNational}
+                      </td>
+                      <td style={{ padding: '20px 8px' }}>
+                        <span style={{ 
+                          padding: '4px 12px', borderRadius: 20, fontSize: 12, fontWeight: 600,
+                          background: record.statut === 'VALIDE' ? '#ECFDF5' : record.statut === 'EN_ATTENTE' ? '#FFFBEB' : '#FEF2F2',
+                          color: record.statut === 'VALIDE' ? '#10B981' : record.statut === 'EN_ATTENTE' ? '#F59E0B' : '#EF4444'
+                        }}>
+                          {record.statut === 'VALIDE' ? 'Vérifié' : record.statut === 'EN_ATTENTE' ? 'En attente' : 'Rejeté'}
+                        </span>
+                      </td>
+                      <td style={{ padding: '20px 8px', color: '#64748B', fontSize: 14 }}>
+                        {new Date(record.createdAt).toLocaleDateString('fr-FR')}
+                      </td>
+                    </tr>
+                  ))
+                )}
               </tbody>
             </table>
           </div>

@@ -15,6 +15,7 @@ import { Colors } from '../../theme/colors';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { birthService } from '../../services/birth.service';
 import { uploadService } from '../../services/upload.service';
+import { useNotification } from '../../store/NotificationContext';
 
 type SyncRecord = {
   id: string;
@@ -38,6 +39,7 @@ export const OfflineSyncScreen = () => {
   const navigation = useNavigation<any>();
   const [drafts, setDrafts] = React.useState<any[]>([]);
   const [isSyncing, setIsSyncing] = React.useState(false);
+  const { showNotification } = useNotification();
 
   const loadDrafts = async () => {
     const data = await birthService.getDrafts();
@@ -67,13 +69,18 @@ export const OfflineSyncScreen = () => {
       const result = await birthService.syncDrafts();
       
       if (result.failed === 0) {
-        Alert.alert('Succès', 'Tous les enregistrements ont été synchronisés.');
+        showNotification('Tous les enregistrements ont été synchronisés avec succès.', 'success');
       } else {
-        Alert.alert('Attention', `${result.success} réussis, ${result.failed} échoués.`);
+        showNotification(`${result.success} réussis, ${result.failed} échoués.`, 'warning');
       }
       loadDrafts();
     } catch (error: any) {
-      Alert.alert('Erreur', 'La synchronisation a échoué.');
+      if (error.message === 'Unauthorized') {
+        showNotification('Votre session a expiré. Veuillez vous reconnecter.', 'error');
+        navigation.reset({ index: 0, routes: [{ name: 'Login' }] });
+      } else {
+        showNotification('La synchronisation a échoué. Vérifiez votre connexion.', 'error');
+      }
     } finally {
       setIsSyncing(false);
     }

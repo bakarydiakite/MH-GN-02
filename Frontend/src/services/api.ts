@@ -1,4 +1,14 @@
-const API_BASE_URL = 'https://naissancechain-api.onrender.com';
+// Utiliser VITE_API_URL pour le local, sinon localhost par défaut
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+
+// Helper pour obtenir le token JWT
+const getAuthToken = () => localStorage.getItem('token');
+
+// Helper pour les headers avec authentification
+const getAuthHeaders = () => ({
+  'Content-Type': 'application/json',
+  'Authorization': `Bearer ${getAuthToken()}`,
+});
 
 export const apiService = {
   /**
@@ -8,9 +18,7 @@ export const apiService = {
     try {
       const response = await fetch(`${API_BASE_URL}/stats/dashboard`, {
         method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: getAuthHeaders(),
       });
 
       if (!response.ok) {
@@ -29,7 +37,9 @@ export const apiService = {
    */
   async getBirths() {
     try {
-      const response = await fetch(`${API_BASE_URL}/births`);
+      const response = await fetch(`${API_BASE_URL}/births`, {
+        headers: getAuthHeaders(),
+      });
       
       if (!response.ok) {
         throw new Error(`Erreur HTTP: ${response.status}`);
@@ -55,16 +65,88 @@ export const apiService = {
   },
 
   /**
+   * Récupère les dossiers en attente de validation
+   */
+  async getPendingBirths() {
+    try {
+      const response = await fetch(`${API_BASE_URL}/births/pending`, {
+        headers: getAuthHeaders(),
+      });
+      
+      if (!response.ok) {
+        throw new Error(`Erreur HTTP: ${response.status}`);
+      }
+      
+      const data = await response.json();
+      return Array.isArray(data) ? data : [];
+    } catch (error) {
+      console.error('Erreur getPendingBirths:', error);
+      return [];
+    }
+  },
+
+  /**
+   * Récupère les dossiers par statut
+   */
+  async getBirthsByStatus(status: string) {
+    try {
+      const response = await fetch(`${API_BASE_URL}/births/by-status/${status}`, {
+        headers: getAuthHeaders(),
+      });
+      
+      if (!response.ok) {
+        throw new Error(`Erreur HTTP: ${response.status}`);
+      }
+      
+      const data = await response.json();
+      return Array.isArray(data) ? data : [];
+    } catch (error) {
+      console.error('Erreur getBirthsByStatus:', error);
+      return [];
+    }
+  },
+
+  /**
    * Valide un dossier et l'ancre sur la blockchain
    */
   async validateBirth(id: string) {
     try {
       const response = await fetch(`${API_BASE_URL}/births/${id}/validate`, {
-        method: 'POST'
+        method: 'POST',
+        headers: getAuthHeaders(),
       });
+      
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || `Erreur HTTP: ${response.status}`);
+      }
+      
       return await response.json();
     } catch (error) {
       console.error('Erreur validateBirth:', error);
+      throw error;
+    }
+  },
+
+  /**
+   * Rejette un dossier avec un motif
+   */
+  async rejectBirth(id: string, motif: string) {
+    try {
+      const response = await fetch(`${API_BASE_URL}/births/${id}/reject`, {
+        method: 'POST',
+        headers: getAuthHeaders(),
+        body: JSON.stringify({ commentaireRejet: motif }),
+      });
+      
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || `Erreur HTTP: ${response.status}`);
+      }
+      
+      return await response.json();
+    } catch (error) {
+      console.error('Erreur rejectBirth:', error);
       throw error;
     }
   },

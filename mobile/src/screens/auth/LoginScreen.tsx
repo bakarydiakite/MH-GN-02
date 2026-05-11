@@ -12,27 +12,19 @@ import {
   Alert,
   ActivityIndicator,
   Dimensions,
-  Image
+  Image as RNImage,
 } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { MaterialIcons, Feather, FontAwesome, Ionicons } from '@expo/vector-icons';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
+import { MaterialIcons, Feather, Ionicons, FontAwesome5 } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../navigation/RootNavigator';
 import { authService } from '../../services/auth.service';
-import Svg, { Path } from 'react-native-svg';
-import * as WebBrowser from 'expo-web-browser';
-import * as Google from 'expo-auth-session/providers/google';
-import * as AuthSession from 'expo-auth-session';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as LocalAuthentication from 'expo-local-authentication';
-import { SocialLoginButtons } from '../../components/ui/SocialLoginButtons';
+import { Colors } from '../../theme/colors';
 
 const { width: windowWidth, height: windowHeight } = Dimensions.get('window');
-const width = Platform.OS === 'web' ? Math.min(windowWidth, 420) : windowWidth;
-const height = windowHeight;
-
-WebBrowser.maybeCompleteAuthSession();
 
 export const LoginScreen = () => {
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
@@ -46,234 +38,184 @@ export const LoginScreen = () => {
 
   const isAgent = role === 'AGENT';
 
-  const [request, response, promptAsync] = Google.useAuthRequest({
-    androidClientId: '562296537435-otvk2csot7l83qq42ojslolbgumqd1ib.apps.googleusercontent.com',
-    webClientId: '562296537435-icjckdmo951k5gg6cerbngei2hjnm4ki.apps.googleusercontent.com',
-    iosClientId: '562296537435-icjckdmo951k5gg6cerbngei2hjnm4ki.apps.googleusercontent.com',
-  });
-
   useEffect(() => {
-    checkDeviceForHardware();
-    if (response?.type === 'success') {
-      const { id_token } = response.params;
-      handleGoogleLogin(id_token);
-    }
-  }, [response]);
+    checkBiometrics();
+  }, []);
 
-  const checkDeviceForHardware = async () => {
-    const compatible = await LocalAuthentication.hasHardwareAsync();
-    setIsBiometricSupported(compatible);
-  };
-
-  const navigateToMain = (userRole: string) => {
-    if (userRole === 'AGENT') navigation.navigate('MainAgent');
-    else navigation.navigate('MainFamille');
-  };
-
-  const handleGoogleLogin = async (idToken: string) => {
-    setIsLoading(true);
-    try {
-      const res = await authService.googleLogin(idToken);
-      navigateToMain(res.user.role);
-    } catch (error: any) {
-      Alert.alert('Erreur Google', error.message);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleBiometricAuth = async () => {
-    try {
-      const isEnrolled = await LocalAuthentication.isEnrolledAsync();
-      if (!isEnrolled) {
-        Alert.alert('Non configuré', 'Aucune empreinte enregistrée.');
-        return;
-      }
-
-      const result = await LocalAuthentication.authenticateAsync({
-        promptMessage: 'Authentification NaissanceChain',
-        fallbackLabel: 'Utiliser le mot de passe',
-      });
-
-      if (result.success) {
-        const storedUser = await AsyncStorage.getItem('user_data');
-        if (storedUser) {
-          const user = JSON.parse(storedUser);
-          navigateToMain(user.role);
-        } else {
-          Alert.alert('Action requise', 'Veuillez vous connecter manuellement une fois.');
-        }
-      }
-    } catch (error) {
-      Alert.alert('Erreur', 'Échec de la biométrie.');
-    }
-  };
-
-  const handleRoleChange = (newRole: 'AGENT' | 'FAMILLE') => {
-    setRole(newRole);
-    if (newRole === 'FAMILLE' && !email.startsWith('+224')) {
-      setEmail('+224 ');
-    } else if (newRole === 'AGENT' && email === '+224 ') {
-      setEmail('');
-    }
-  };
-
-  const handlePhoneChange = (text: string) => {
-    if (!isAgent) {
-      // Force le +224
-      if (!text.startsWith('+224')) {
-        setEmail('+224 ' + text.replace(/[^\d]/g, ''));
-      } else {
-        setEmail(text);
-      }
-    } else {
-      setEmail(text);
-    }
+  const checkBiometrics = async () => {
+    const hasHardware = await LocalAuthentication.hasHardwareAsync();
+    const isEnrolled = await LocalAuthentication.isEnrolledAsync();
+    setIsBiometricSupported(hasHardware && isEnrolled);
   };
 
   const handleLogin = async () => {
     const cleanEmail = email.trim().replace(/\s/g, '');
     if (!cleanEmail || (isAgent && !password)) {
-      Alert.alert('Champs requis', `Veuillez renseigner votre ${isAgent ? 'identifiant et mot de passe' : 'numéro de téléphone'}.`);
+      Alert.alert('Champs requis', 'Veuillez remplir tous les champs.');
       return;
     }
 
     setIsLoading(true);
     try {
       const res = await authService.login(cleanEmail, password);
-      
-      // Vérification du rôle
       if (res.user.role !== role) {
-        Alert.alert('Accès refusé', `Ce compte n'est pas enregistré comme un profil ${isAgent ? 'Agent' : 'Famille'}.`);
+        Alert.alert('Accès refusé', `Ce compte n'est pas associé au profil ${role.toLowerCase()}.`);
         setIsLoading(false);
         return;
       }
-
-      navigateToMain(res.user.role);
+      navigation.navigate(res.user.role === 'AGENT' ? 'MainAgent' : 'MainFamille' as any);
     } catch (error: any) {
-      let friendlyMessage = 'Une erreur est survenue lors de la connexion.';
-      
-      const errorMessage = error.message || '';
-      
-      if (errorMessage.includes('Identifiants invalides') || errorMessage.includes('numéro non reconnu')) {
-        friendlyMessage = isAgent 
-          ? 'Email/Téléphone ou mot de passe incorrect.' 
-          : "Numéro non reconnu. Vérifiez que l'agent a bien enregistré votre numéro sur l'acte de naissance.";
-      } else if (errorMessage) {
-        friendlyMessage = errorMessage; // Utiliser le message précis du backend
-      }
-
-      Alert.alert('Oups !', friendlyMessage);
+      Alert.alert('Erreur', error.message || 'Échec de la connexion.');
     } finally {
       setIsLoading(false);
     }
   };
 
+  const handleBiometricAuth = async () => {
+    const result = await LocalAuthentication.authenticateAsync({
+      promptMessage: 'Authentification NaissanceChain',
+    });
+    if (result.success) {
+      const storedUser = await AsyncStorage.getItem('user_data');
+      if (storedUser) {
+        const user = JSON.parse(storedUser);
+        navigation.navigate(user.role === 'AGENT' ? 'MainAgent' : 'MainFamille' as any);
+      } else {
+        Alert.alert('Note', 'Veuillez vous connecter manuellement la première fois.');
+      }
+    }
+  };
+
   return (
-    <View style={styles.container}>
-      <StatusBar barStyle="light-content" translucent backgroundColor="transparent" />
+    <View style={styles.root}>
+      <StatusBar style="light" />
       
-      <View style={styles.header}>
-        <View style={styles.headerBackground}>
-          <View style={[styles.headerTextContainer, { paddingTop: insets.top + 15 }]}>
-            <Text style={styles.headerSmall}>Bon retour parmi nous !</Text>
-            <Text style={styles.headerLarge}>Connexion</Text>
+      {/* Immersive Top Decoration */}
+      <View style={[styles.topDecoration, { height: windowHeight * 0.35, backgroundColor: Colors.primary }]}>
+        <View style={styles.decorationCircle1} />
+        <View style={styles.decorationCircle2} />
+        <SafeAreaView style={styles.topContent} edges={['top']}>
+          <View style={styles.brandContainer}>
+            <View style={styles.logoContainer}>
+              <FontAwesome5 name="fingerprint" size={32} color="#fff" />
+            </View>
+            <Text style={styles.brandName}>NaissanceChain</Text>
+            <Text style={styles.brandSlogan}>ÉTAT CIVIL</Text>
           </View>
-        </View>
-        <View style={styles.svgWrapper}>
-          <Svg height="80" width={width} viewBox={`0 0 ${width} 80`} style={styles.waveSvg}>
-            <Path d={`M0,0 C${width * 0.3},80 ${width * 0.7},0 ${width},80 L${width},80 L0,80 Z`} fill="#fff" />
-          </Svg>
-        </View>
+        </SafeAreaView>
       </View>
 
-      <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={styles.formContainer}>
-        <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
-          
-          <View style={styles.roleContainer}>
-            <TouchableOpacity 
-              style={[styles.roleTab, isAgent && styles.roleTabActive]} 
-              onPress={() => handleRoleChange('AGENT')}
-            >
-              <Ionicons name="medical" size={18} color={isAgent ? '#fff' : '#006948'} style={{marginRight: 8}} />
-              <Text style={[styles.roleText, isAgent && styles.roleTextActive]}>Agent</Text>
-            </TouchableOpacity>
-            <TouchableOpacity 
-              style={[styles.roleTab, !isAgent && styles.roleTabActive]} 
-              onPress={() => handleRoleChange('FAMILLE')}
-            >
-              <Ionicons name="people" size={18} color={!isAgent ? '#fff' : '#006948'} style={{marginRight: 8}} />
-              <Text style={[styles.roleText, !isAgent && styles.roleTextActive]}>Famille</Text>
-            </TouchableOpacity>
-          </View>
+      <KeyboardAvoidingView 
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'} 
+        style={styles.formContainer}
+      >
+        <ScrollView 
+          contentContainerStyle={styles.scrollContent} 
+          showsVerticalScrollIndicator={false}
+          bounces={false}
+        >
+          <View style={styles.formCard}>
+            <Text style={styles.welcomeTitle}>Bienvenue</Text>
+            <Text style={styles.welcomeSub}>Veuillez vous identifier pour accéder au registre d&apos;État Civil.</Text>
 
-          <View style={styles.inputGroup}>
-            <Text style={styles.label}>{isAgent ? 'Email ou Téléphone' : 'Numéro de Téléphone'}</Text>
-            <View style={styles.inputWrapper}>
-              <Feather name={isAgent ? "user" : "phone"} size={18} color="#006948" style={{marginRight: 10}} />
-              <TextInput 
-                style={styles.input} 
-                placeholder={isAgent ? "exemple@mail.com ou 6xxxxxxxx" : "+224 6xx xx xx xx"} 
-                placeholderTextColor="#A0A0A0" 
-                value={email} 
-                onChangeText={handlePhoneChange} 
-                keyboardType={isAgent ? "default" : "phone-pad"} 
-                autoCapitalize="none" 
-              />
+            {/* Premium Role Selector */}
+            <View style={styles.rolePicker}>
+              <TouchableOpacity 
+                style={[styles.roleOption, isAgent && styles.roleOptionActive]} 
+                onPress={() => setRole('AGENT')}
+              >
+                <Feather name="shield" size={16} color={isAgent ? '#fff' : Colors.primary} />
+                <Text style={[styles.roleOptionText, isAgent && styles.roleOptionTextActive]}>Agent</Text>
+              </TouchableOpacity>
+              <TouchableOpacity 
+                style={[styles.roleOption, !isAgent && styles.roleOptionActive]} 
+                onPress={() => setRole('FAMILLE')}
+              >
+                <Feather name="home" size={16} color={!isAgent ? '#fff' : Colors.primary} />
+                <Text style={[styles.roleOptionText, !isAgent && styles.roleOptionTextActive]}>Famille</Text>
+              </TouchableOpacity>
             </View>
-            {!isAgent && (
-              <Text style={styles.inputHint}>
-                Connectez-vous avec le numéro donné lors de l&apos;enregistrement.
-              </Text>
-            )}
-          </View>
 
-          {isAgent && (
+            {/* Inputs */}
             <View style={styles.inputGroup}>
-              <Text style={styles.label}>Mot de passe</Text>
-              <View style={styles.inputWrapper}>
+              <Text style={styles.inputLabel}>{isAgent ? 'Email / Identifiant' : 'Numéro de téléphone'}</Text>
+              <View style={styles.inputBox}>
+                <Feather name={isAgent ? "mail" : "phone"} size={20} color={Colors.primary} style={styles.inputIcon} />
                 <TextInput 
                   style={styles.input}
-                  placeholder="Votre mot de passe"
-                  value={password}
-                  onChangeText={setPassword}
-                  secureTextEntry={!showPassword}
+                  placeholder={isAgent ? "agent@gouv.gn" : "+224 6xx xx xx xx"}
+                  value={email}
+                  onChangeText={setEmail}
+                  autoCapitalize="none"
                 />
-                <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
-                  <Feather name={showPassword ? "eye" : "eye-off"} size={18} color="#A0A0A0" />
-                </TouchableOpacity>
               </View>
             </View>
-          )}
 
-          <View style={styles.buttonRow}>
+            {isAgent && (
+              <View style={styles.inputGroup}>
+                <Text style={styles.inputLabel}>Mot de passe</Text>
+                <View style={styles.inputBox}>
+                  <Feather name="lock" size={20} color={Colors.primary} style={styles.inputIcon} />
+                  <TextInput 
+                    style={styles.input}
+                    placeholder="••••••••"
+                    secureTextEntry={!showPassword}
+                    value={password}
+                    onChangeText={setPassword}
+                  />
+                  <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
+                    <Feather name={showPassword ? "eye" : "eye-off"} size={20} color="#ccc" />
+                  </TouchableOpacity>
+                </View>
+              </View>
+            )}
+
+            {!isAgent && (
+              <View style={styles.infoNote}>
+                <Feather name="info" size={14} color={Colors.primary} />
+                <Text style={styles.infoNoteText}>
+                  Utilisez le numéro enregistré par l&apos;agent lors de la déclaration.
+                </Text>
+              </View>
+            )}
+
+            {/* Login Action */}
             <TouchableOpacity 
-              style={[styles.loginButton, isLoading && styles.buttonDisabled]}
+              style={[styles.loginBtn, isLoading && styles.loginBtnDisabled]}
               onPress={handleLogin}
               disabled={isLoading}
             >
               {isLoading ? (
                 <ActivityIndicator color="#fff" />
               ) : (
-                <Text style={styles.loginButtonText}>
-                  {isAgent ? 'Se connecter' : 'Accéder à mon espace'}
-                </Text>
+                <>
+                  <Text style={styles.loginBtnText}>Accéder au Portail</Text>
+                  <Feather name="arrow-right" size={20} color="#fff" />
+                </>
               )}
             </TouchableOpacity>
 
+            {/* Quick Auth Divider */}
             {isBiometricSupported && (
-              <TouchableOpacity style={styles.biometryBtn} onPress={handleBiometricAuth}>
-                <Ionicons name="finger-print" size={28} color="#006948" />
+              <View style={styles.divider}>
+                <View style={styles.dividerLine} />
+                <Text style={styles.dividerText}>OU BIOMÉTRIE</Text>
+                <View style={styles.dividerLine} />
+              </View>
+            )}
+
+            {isBiometricSupported && (
+              <TouchableOpacity style={styles.bioBtn} onPress={handleBiometricAuth}>
+                <Ionicons name="finger-print-outline" size={32} color={Colors.primary} />
+                <Text style={styles.bioBtnText}>Utiliser FaceID / Empreinte</Text>
               </TouchableOpacity>
             )}
           </View>
 
-          <SocialLoginButtons onGooglePress={() => promptAsync()} isLoading={isLoading} />
-
-          <View style={styles.footer}>
-            <Text style={styles.footerText}>Pas encore de compte ? </Text>
-            <TouchableOpacity onPress={() => navigation.navigate('Register')}>
-              <Text style={styles.signupText}>S'inscrire</Text>
+          <View style={styles.bottomLink}>
+            <Text style={styles.bottomLinkText}>Besoin d&apos;assistance ? </Text>
+            <TouchableOpacity>
+              <Text style={styles.supportText}>Contacter le support</Text>
             </TouchableOpacity>
           </View>
         </ScrollView>
@@ -283,32 +225,49 @@ export const LoginScreen = () => {
 };
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#fff' },
-  header: { height: height * 0.24, backgroundColor: '#006948', position: 'relative' },
-  headerBackground: { flex: 1 },
-  headerTextContainer: { paddingHorizontal: 35 },
-  headerSmall: { fontSize: 14, color: 'rgba(255, 255, 255, 0.85)', fontWeight: '500' },
-  headerLarge: { fontSize: 36, color: '#fff', fontWeight: '900', marginTop: 2 },
-  svgWrapper: { position: 'absolute', bottom: -1, left: 0, right: 0 },
-  waveSvg: { backgroundColor: 'transparent' },
-  formContainer: { flex: 1 },
-  scrollContent: { paddingHorizontal: 35, paddingBottom: 40, paddingTop: 10 },
-  roleContainer: { flexDirection: 'row', backgroundColor: '#f5fbf4', borderRadius: 15, padding: 5, marginBottom: 25 },
-  roleTab: { flex: 1, paddingVertical: 12, alignItems: 'center', borderRadius: 12, flexDirection: 'row', justifyContent: 'center' },
-  roleTabActive: { backgroundColor: '#006948' },
-  roleText: { fontSize: 14, fontWeight: '700', color: '#006948' },
-  roleTextActive: { color: '#fff' },
-  inputGroup: { marginBottom: 22 },
-  label: { fontSize: 14, fontWeight: '700', color: '#333', marginBottom: 10 },
-  inputWrapper: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#fff', borderRadius: 15, paddingHorizontal: 18, height: 58, borderWidth: 1, borderColor: '#F0F0F0' },
-  input: { flex: 1, fontSize: 15, color: '#000' },
-  inputHint: { fontSize: 11, color: '#006948', marginTop: 6, fontWeight: '600', opacity: 0.8 },
-  buttonRow: { flexDirection: 'row', alignItems: 'center', gap: 15, marginTop: 15 },
-  loginButton: { flex: 1, backgroundColor: '#006948', height: 60, borderRadius: 30, justifyContent: 'center', alignItems: 'center', elevation: 4 },
-  biometryBtn: { width: 60, height: 60, borderRadius: 30, backgroundColor: '#f5fbf4', justifyContent: 'center', alignItems: 'center', borderWidth: 1, borderColor: 'rgba(0, 105, 72, 0.1)' },
-  buttonDisabled: { opacity: 0.7 },
-  loginButtonText: { color: '#fff', fontSize: 17, fontWeight: '700' },
-  footer: { flexDirection: 'row', justifyContent: 'center', marginTop: 40 },
-  footerText: { color: '#666', fontSize: 15 },
-  signupText: { color: '#006948', fontSize: 15, fontWeight: '700' },
+  root: { flex: 1, backgroundColor: '#fff' },
+  topDecoration: { position: 'absolute', top: 0, left: 0, right: 0, overflow: 'hidden' },
+  decorationCircle1: { position: 'absolute', top: -50, right: -50, width: 250, height: 250, borderRadius: 125, backgroundColor: 'rgba(255,255,255,0.1)' },
+  decorationCircle2: { position: 'absolute', bottom: -100, left: -50, width: 200, height: 200, borderRadius: 100, backgroundColor: 'rgba(255,255,255,0.05)' },
+  topContent: { flex: 1, alignItems: 'center', justifyContent: 'center' },
+  brandContainer: { alignItems: 'center' },
+  logoContainer: { width: 70, height: 70, borderRadius: 24, backgroundColor: 'rgba(255,255,255,0.2)', justifyContent: 'center', alignItems: 'center', marginBottom: 16, borderWidth: 1, borderColor: 'rgba(255,255,255,0.3)' },
+  brandName: { fontSize: 28, fontWeight: '900', color: '#fff', letterSpacing: -1 },
+  brandSlogan: { fontSize: 12, color: 'rgba(255,255,255,0.6)', fontWeight: '700', textTransform: 'uppercase', letterSpacing: 3, marginTop: 4 },
+  
+  formContainer: { flex: 1, marginTop: windowHeight * 0.28 },
+  scrollContent: { paddingHorizontal: 24, paddingBottom: 40 },
+  formCard: { backgroundColor: '#fff', borderRadius: 40, padding: 32, shadowColor: '#000', shadowOffset: { width: 0, height: 20 }, shadowOpacity: 0.1, shadowRadius: 40, elevation: 15 },
+  welcomeTitle: { fontSize: 32, fontWeight: '900', color: Colors.onSurface, letterSpacing: -1 },
+  welcomeSub: { fontSize: 14, color: Colors.onSurfaceVariant, opacity: 0.6, marginTop: 8, lineHeight: 22, marginBottom: 32 },
+  
+  rolePicker: { flexDirection: 'row', backgroundColor: '#F8FAF9', padding: 6, borderRadius: 20, marginBottom: 32 },
+  roleOption: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, paddingVertical: 12, borderRadius: 16 },
+  roleOptionActive: { backgroundColor: Colors.primary, shadowColor: Colors.primary, shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.2, shadowRadius: 10, elevation: 4 },
+  roleOptionText: { fontSize: 14, fontWeight: '700', color: Colors.primary },
+  roleOptionTextActive: { color: '#fff' },
+  
+  inputGroup: { marginBottom: 20 },
+  inputLabel: { fontSize: 13, fontWeight: '800', color: Colors.onSurface, marginBottom: 8, opacity: 0.8 },
+  inputBox: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#F8FAF9', borderRadius: 20, paddingHorizontal: 20, height: 64, borderWidth: 1, borderColor: '#F0F0F0' },
+  inputIcon: { marginRight: 12, opacity: 0.8 },
+  input: { flex: 1, fontSize: 16, color: Colors.onSurface, fontWeight: '600' },
+  
+  infoNote: { flexDirection: 'row', gap: 8, marginTop: -10, marginBottom: 20, paddingHorizontal: 4 },
+  infoNoteText: { fontSize: 11, color: Colors.primary, fontWeight: '700', opacity: 0.7, flex: 1 },
+  
+  loginBtn: { backgroundColor: Colors.primary, height: 68, borderRadius: 24, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 12, marginTop: 10, shadowColor: Colors.primary, shadowOffset: { width: 0, height: 10 }, shadowOpacity: 0.3, shadowRadius: 20, elevation: 8 },
+  loginBtnDisabled: { opacity: 0.7 },
+  loginBtnText: { color: '#fff', fontSize: 17, fontWeight: '800' },
+  
+  divider: { flexDirection: 'row', alignItems: 'center', marginVertical: 32 },
+  dividerLine: { flex: 1, height: 1, backgroundColor: '#F0F0F0' },
+  dividerText: { fontSize: 10, fontWeight: '900', color: '#ccc', marginHorizontal: 16, letterSpacing: 1 },
+  
+  bioBtn: { alignItems: 'center', gap: 10 },
+  bioBtnText: { fontSize: 14, fontWeight: '700', color: Colors.primary, opacity: 0.8 },
+  
+  bottomLink: { flexDirection: 'row', justifyContent: 'center', marginTop: 40 },
+  bottomLinkText: { fontSize: 14, color: Colors.onSurfaceVariant, opacity: 0.6 },
+  supportText: { fontSize: 14, color: Colors.primary, fontWeight: '700' }
 });

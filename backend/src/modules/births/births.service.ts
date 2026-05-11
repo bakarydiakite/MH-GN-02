@@ -13,6 +13,26 @@ export class BirthsService {
     private blockchain: BlockchainService,
   ) {}
 
+  private parseSafeDate(dateStr: string, fieldName: string): Date {
+    const d = new Date(dateStr);
+    if (isNaN(d.getTime())) {
+      throw new BadRequestException(`Format de date invalide pour ${fieldName}: ${dateStr}. Attendu: AAAA-MM-DD`);
+    }
+    return d;
+  }
+
+  private parseSafeTime(timeStr: string): Date {
+    // Si c'est déjà un ISO string complet, on le parse normalement
+    if (timeStr.includes('T')) return new Date(timeStr);
+    
+    // Sinon on attend HH:mm
+    const d = new Date(`1970-01-01T${timeStr}${timeStr.length === 5 ? ':00' : ''}Z`);
+    if (isNaN(d.getTime())) {
+      return new Date(`1970-01-01T00:00:00Z`); // Fallback safe
+    }
+    return d;
+  }
+
   async create(userId: string, dto: CreateBirthDto) {
     // 1. Find the agent corresponding to the user
     const agent = await this.prisma.agent.findUnique({
@@ -27,20 +47,20 @@ export class BirthsService {
     const year = new Date().getFullYear();
     const iun = `GN-${year}-${Math.random().toString(36).substring(2, 8).toUpperCase()}`;
 
-    // 3. Create the record with status VALIDATED directly for the demo
+    // 3. Create the record with status EN_ATTENTE (requires supervisor validation)
     const record = await this.prisma.birthRecord.create({
       data: {
         agentId: agent.id,
         centerId: agent.centerId,
-        statut: BirthStatus.VALIDE, // Direct validation for demo
+        statut: BirthStatus.EN_ATTENTE, // Requires supervisor validation
         identifiantUniqueNational: iun,
-        dateValidation: new Date(),
+        // dateValidation will be set when supervisor validates
         enfant: {
           create: {
             prenoms: dto.prenomsEnfant,
             nom: dto.nomEnfant,
-            dateNaissance: new Date(dto.dateNaissanceEnfant),
-            heureNaissance: dto.heureNaissanceEnfant ? new Date(`1970-01-01T${dto.heureNaissanceEnfant}:00Z`) : null,
+            dateNaissance: this.parseSafeDate(dto.dateNaissanceEnfant, 'Date de naissance enfant'),
+            heureNaissance: dto.heureNaissanceEnfant ? this.parseSafeTime(dto.heureNaissanceEnfant) : null,
             sexe: dto.sexeEnfant,
             nationalite: dto.nationaliteEnfant || 'Guinéenne',
             regionNaissance: dto.regionNaissance,
@@ -57,7 +77,7 @@ export class BirthsService {
               type: ParentType.MERE,
               nom: dto.nomMere,
               prenom: dto.prenomMere || '',
-              dateNaissance: dto.dateNaissanceMere ? new Date(dto.dateNaissanceMere) : null,
+              dateNaissance: dto.dateNaissanceMere ? this.parseSafeDate(dto.dateNaissanceMere, 'Date de naissance mère') : null,
               numeroIdentification: dto.idNationalMere,
               cniOuAutre: dto.cniMere,
               profession: dto.professionMere,
@@ -71,7 +91,7 @@ export class BirthsService {
               type: ParentType.PERE,
               nom: dto.nomPere,
               prenom: dto.prenomPere || '',
-              dateNaissance: dto.dateNaissancePere ? new Date(dto.dateNaissancePere) : null,
+              dateNaissance: dto.dateNaissancePere ? this.parseSafeDate(dto.dateNaissancePere, 'Date de naissance père') : null,
               numeroIdentification: dto.idNationalPere,
               cniOuAutre: dto.cniPere,
               profession: dto.professionPere,
@@ -122,52 +142,9 @@ export class BirthsService {
       },
     });
 
-    // 4. Blockchain Anchoring
-    try {
-      const hashData = {
-        identifiantUniqueNational: iun,
-        nomEnfant: record.enfant!.nom,
-        prenomEnfant: record.enfant!.prenoms,
-        dateNaissance: record.enfant!.dateNaissance.toISOString(),
-        sexe: record.enfant!.sexe,
-        lieuNaissance: record.enfant!.lieuNaissanceLibelle || 'Non spécifié',
-      };
-      
-      const hash = this.blockchain.generateHash(hashData);
-      const anchorResult = await this.blockchain.anchorHash(hash);
-
-      // 5. Update record with Blockchain Proof and create Acte Numerique
-      return this.prisma.birthRecord.update({
-        where: { id: record.id },
-        data: {
-          hashBlockchain: hash,
-          blockchainTx: {
-            create: {
-              txHash: anchorResult.txHash,
-              statut: anchorResult.mode === 'live' ? 'CONFIRMEE' : 'EN_ATTENTE',
-              reseauBlockchain: anchorResult.network,
-              blocNumero: anchorResult.blockNumber ? BigInt(anchorResult.blockNumber) : null,
-            },
-          },
-          acteNumerique: {
-            create: {
-              numeroActe: `ACTE-${iun}`,
-              qrCodeData: iun,
-            },
-          },
-        },
-        include: {
-          enfant: true,
-          parents: true,
-          acteNumerique: true,
-          blockchainTx: true,
-        },
-      });
-    } catch (error) {
-      this.logger.error(`[BirthsService] Blockchain anchoring failed for record ${record.id}:`, error);
-      // Even if blockchain fails, the record is created in DB for demo
-      return record;
-    }
+    // 4. Return record - Blockchain anchoring will happen when supervisor validates
+    this.logger.log(`[BirthsService] Record created with status EN_ATTENTE: ${record.id}`);
+    return record;
   }
 
   async findAll(filters: any) {
@@ -181,7 +158,11 @@ export class BirthsService {
         orderBy: { createdAt: 'desc' },
         include: {
           enfant: true,
+          parents: true,
           agent: { include: { user: { select: { nom: true, prenom: true } } } },
+          attachments: true,
+          center: { include: { prefecture: true } },
+          blockchainTx: true,
         },
       });
       console.log(`[BirthsService] Demo mode - Found ${records.length} records`);
@@ -200,11 +181,25 @@ export class BirthsService {
 
     // 2. Filtrage par rôle
     if (user.role === UserRole.AGENT && user.agent) {
+      // Agent: voir uniquement ses propres actes
       queryWhere.agentId = user.agent.id;
       console.log(`[BirthsService] Agent filtering: ${user.agent.id}`);
+    } else if (user.role === UserRole.SUPERVISEUR) {
+      // Superviseur: voir les actes de son centre (ou tous si pas de centre assigné)
+      if (user.agent?.centerId) {
+        queryWhere.centerId = user.agent.centerId;
+        console.log(`[BirthsService] Superviseur filtering by center: ${user.agent.centerId}`);
+      } else {
+        console.log(`[BirthsService] Superviseur sees all records (no center assigned)`);
+      }
+    } else if (user.role === UserRole.VERIFICATEUR) {
+      // Vérificateur: voir tous les actes (lecture seule)
+      console.log(`[BirthsService] Verificateur sees all records`);
+    } else if (user.role === UserRole.ADMINISTRATEUR) {
+      // Admin: voir tous les actes
+      console.log(`[BirthsService] Admin sees all records`);
     } else if (user.role === UserRole.FAMILLE) {
       // Pour les familles, on cherche les actes où l'utilisateur est le père ou la mère
-      // On utilise son NIN ou son téléphone comme identifiant
       queryWhere.parents = {
         some: {
           telephone: user.telephone
@@ -219,7 +214,11 @@ export class BirthsService {
       orderBy: { createdAt: 'desc' },
       include: {
         enfant: true,
+        parents: true,
         agent: { include: { user: { select: { nom: true, prenom: true } } } },
+        attachments: true,
+        center: { include: { prefecture: true } },
+        blockchainTx: true,
       },
     });
 
@@ -237,6 +236,7 @@ export class BirthsService {
         agent: { include: { user: true }},
         acteNumerique: true,
         attachments: true,
+        blockchainTx: true,
       },
     });
 
@@ -245,6 +245,40 @@ export class BirthsService {
     }
 
     return record;
+  }
+
+  async findPending() {
+    // Récupérer tous les dossiers en attente de validation
+    return this.prisma.birthRecord.findMany({
+      where: { statut: BirthStatus.EN_ATTENTE },
+      orderBy: { createdAt: 'desc' },
+      include: {
+        enfant: true,
+        parents: true,
+        agent: { include: { user: { select: { nom: true, prenom: true, email: true } } } },
+        attachments: true,
+        center: { include: { prefecture: true } },
+        blockchainTx: true,
+      },
+    });
+  }
+
+  async findByStatus(status: string) {
+    // Convertir le string en enum
+    const statusEnum = status.toUpperCase().replace('-', '_') as BirthStatus;
+    
+    return this.prisma.birthRecord.findMany({
+      where: { statut: statusEnum },
+      orderBy: { createdAt: 'desc' },
+      include: {
+        enfant: true,
+        parents: true,
+        agent: { include: { user: { select: { nom: true, prenom: true } } } },
+        attachments: true,
+        center: { include: { prefecture: true } },
+        blockchainTx: true,
+      },
+    });
   }
 
   async validate(id: string, validatorId: string) {
@@ -373,5 +407,72 @@ export class BirthsService {
     }
 
     return record;
+  }
+
+  async addAttachment(naissanceId: string, type: string, urlFichier: string, nomFichier?: string) {
+    const attachmentType = type as AttachmentType;
+    
+    return this.prisma.attachment.create({
+      data: {
+        naissanceId,
+        type: attachmentType,
+        urlFichier,
+        nomFichier: nomFichier || 'document.jpg',
+        mimeType: 'image/jpeg',
+      },
+    });
+  }
+
+  async seedAttachments() {
+    // Récupérer tous les actes sans pièces jointes
+    const records = await this.prisma.birthRecord.findMany({
+      where: {
+        attachments: { none: {} }
+      },
+    });
+
+    const baseUrl = 'https://via.placeholder.com/400x300';
+    let added = 0;
+
+    for (const record of records) {
+      // Ajouter carnet maternité
+      await this.prisma.attachment.create({
+        data: {
+          naissanceId: record.id,
+          type: AttachmentType.PHOTO_CARNET,
+          urlFichier: `${baseUrl}/4CAF50/FFFFFF?text=Carnet+Maternite`,
+          nomFichier: 'carnet_maternite.jpg',
+          mimeType: 'image/jpeg',
+        },
+      });
+
+      // Ajouter CNI mère
+      await this.prisma.attachment.create({
+        data: {
+          naissanceId: record.id,
+          type: AttachmentType.PHOTO_CNI,
+          urlFichier: `${baseUrl}/2196F3/FFFFFF?text=CNI+Mere`,
+          nomFichier: 'cni_mere.jpg',
+          mimeType: 'image/jpeg',
+        },
+      });
+
+      // Ajouter CNI père (70% des cas)
+      if (Math.random() > 0.3) {
+        await this.prisma.attachment.create({
+          data: {
+            naissanceId: record.id,
+            type: AttachmentType.PHOTO_CNI,
+            urlFichier: `${baseUrl}/FF9800/FFFFFF?text=CNI+Pere`,
+            nomFichier: 'cni_pere.jpg',
+            mimeType: 'image/jpeg',
+          },
+        });
+      }
+
+      added++;
+    }
+
+    return { message: `Pièces jointes ajoutées à ${added} actes` };
   }
 }

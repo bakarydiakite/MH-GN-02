@@ -192,7 +192,7 @@ export default function Navbar() {
           </button>
 
           <button
-            onClick={() => navigate('/admin')}
+            onClick={() => navigate('/login')}
             style={{
               background: '#0D7A5F',
               color: '#fff',

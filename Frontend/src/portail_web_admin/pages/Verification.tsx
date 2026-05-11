@@ -1,3 +1,4 @@
+import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { 
   ShieldCheck, 
@@ -6,28 +7,86 @@ import {
   Search, 
   QrCode, 
   History,
-  FileText
+  FileText,
+  CheckCircle2,
+  XCircle,
+  Clock,
+  Loader2
 } from 'lucide-react';
+import { apiService } from '../../services/api';
 
-const stats = [
-  { label: 'Vérifications aujourd\'hui', value: '247', icon: ShieldCheck, color: '#10B981' },
-  { label: 'Taux de succès', value: '98.4%', icon: Percent, color: '#3B82F6' },
-  { label: 'Total ce mois', value: '1 284', icon: BarChart3, color: '#6366F1' },
-];
-
-const recentSearches = [
-  { name: 'Amara Diallo', id: 'NC-2024-001847', status: 'Vérifié' },
-  { name: 'Kofi Mensah', id: 'NC-2024-002391', status: 'En attente' },
-  { name: 'Fatou Camara', id: 'NC-2023-009812', status: 'Vérifié' },
-];
-
-const exampleRecords = [
-  { name: 'Bakary Diakite', id: 'NC-2024-001847', region: 'Conakry, Matoto', status: 'Vérifié' },
-  { name: 'Aminata Camara', id: 'NC-2024-001848', region: 'Conakry, Kaloum', status: 'En attente' },
-  { name: 'Oumar Bah', id: 'NC-2024-001849', region: 'Labé, Centre', status: 'Vérifié' },
-];
+interface BirthRecord {
+  id: string;
+  identifiantUniqueNational: string;
+  enfant: {
+    prenoms: string;
+    nom: string;
+  };
+  center?: {
+    nom: string;
+    prefecture?: {
+      nom: string;
+      region: string;
+    };
+  };
+  statut: string;
+}
 
 export default function Verification() {
+  const [searchQuery, setSearchQuery] = useState('');
+  const [searchResult, setSearchResult] = useState<BirthRecord | null>(null);
+  const [searching, setSearching] = useState(false);
+  const [recentRecords, setRecentRecords] = useState<BirthRecord[]>([]);
+  const [stats, setStats] = useState({
+    verificationsToday: 0,
+    successRate: 0,
+    totalMonth: 0
+  });
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        // Charger les stats
+        const statsData = await apiService.getDashboardStats();
+        setStats({
+          verificationsToday: statsData.anchoredOnBlockchain || 0,
+          successRate: statsData.totalBirths > 0 ? Math.round((statsData.anchoredOnBlockchain / statsData.totalBirths) * 100) : 0,
+          totalMonth: statsData.totalBirths || 0,
+        });
+
+        // Charger les enregistrements récents
+        const births = await apiService.getBirths();
+        setRecentRecords(births.slice(0, 5));
+      } catch (error) {
+        console.error('Erreur chargement données:', error);
+      }
+    };
+
+    fetchData();
+  }, []);
+
+  const handleSearch = async () => {
+    if (!searchQuery.trim()) return;
+    
+    setSearching(true);
+    try {
+      const result = await apiService.getBirths().then(births => 
+        births.find(b => b.identifiantUniqueNational === searchQuery.trim())
+      );
+      setSearchResult(result || null);
+    } catch (error) {
+      console.error('Erreur recherche:', error);
+    } finally {
+      setSearching(false);
+    }
+  };
+
+  const statCards = [
+    { label: 'Actes vérifiés', value: stats.verificationsToday, icon: ShieldCheck, color: '#10B981' },
+    { label: 'Taux de succès', value: `${stats.successRate}%`, icon: Percent, color: '#3B82F6' },
+    { label: 'Total enregistrements', value: stats.totalMonth, icon: BarChart3, color: '#6366F1' },
+  ];
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 32 }}>
       {/* Header Section */}
@@ -47,7 +106,7 @@ export default function Verification() {
 
       {/* Stats Cards */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 24 }}>
-        {stats.map((stat, i) => (
+        {statCards.map((stat, i) => (
           <motion.div
             key={stat.label}
             initial={{ opacity: 0, y: 20 }}
@@ -115,19 +174,54 @@ export default function Verification() {
                   <Search size={20} color="#94A3B8" />
                   <input 
                     type="text" 
-                    placeholder="ex. NC-2024-001847" 
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    placeholder="ex. GN-2024-001ABC" 
                     style={{ border: 'none', outline: 'none', background: 'transparent', width: '100%', fontSize: 16, color: '#1E293B' }}
                   />
                 </div>
-                <button style={{ 
-                  background: '#64748B', color: '#fff', border: 'none', borderRadius: 16, 
-                  padding: '0 32px', fontWeight: 600, fontSize: 16, cursor: 'pointer',
-                  display: 'flex', alignItems: 'center', gap: 10
-                }}>
-                  <Search size={20} /> Vérifier
+                <button 
+                  onClick={handleSearch}
+                  disabled={searching}
+                  style={{ 
+                    background: '#0D7A5F', color: '#fff', border: 'none', borderRadius: 16, 
+                    padding: '0 32px', fontWeight: 600, fontSize: 16, cursor: 'pointer',
+                    display: 'flex', alignItems: 'center', gap: 10
+                  }}
+                >
+                  {searching ? <Loader2 size={20} className="animate-spin" /> : <Search size={20} />} Vérifier
                 </button>
               </div>
             </div>
+
+            {/* Résultat de la recherche */}
+            {searchResult && (
+              <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                style={{ 
+                  background: searchResult.statut === 'VALIDE' ? '#ECFDF5' : '#FFFBEB',
+                  padding: 24, borderRadius: 16, marginBottom: 24 
+                }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 16 }}>
+                  {searchResult.statut === 'VALIDE' ? (
+                    <CheckCircle2 size={24} color="#10B981" />
+                  ) : (
+                    <Clock size={24} color="#F59E0B" />
+                  )}
+                  <span style={{ fontWeight: 700, color: searchResult.statut === 'VALIDE' ? '#10B981' : '#F59E0B' }}>
+                    {searchResult.statut === 'VALIDE' ? 'Acte vérifié et authentifié' : 'En attente de validation'}
+                  </span>
+                </div>
+                <p style={{ fontSize: 18, fontWeight: 700, color: '#1E293B', marginBottom: 8 }}>
+                  {searchResult.enfant?.prenoms} {searchResult.enfant?.nom}
+                </p>
+                <p style={{ color: '#64748B', fontSize: 14 }}>
+                  ID: {searchResult.identifiantUniqueNational}
+                </p>
+              </motion.div>
+            )}
 
             <div style={{ display: 'flex', alignItems: 'center', gap: 24 }}>
               <button style={{ 
@@ -137,22 +231,23 @@ export default function Verification() {
                 <QrCode size={18} /> Scanner un QR code
               </button>
               <p style={{ fontSize: 13, color: '#94A3B8', margin: 0 }}>
-                ou <span style={{ color: '#64748B', fontWeight: 500 }}>Format : NC-AAAA-XXXXXX</span> • Essayez : <span style={{ color: '#3B82F6', cursor: 'pointer' }}>NC-2024-001847</span>
+                Format : <span style={{ color: '#64748B', fontWeight: 500 }}>GN-AAAA-XXXXXX</span>
               </p>
             </div>
           </motion.div>
 
-          {/* Example Section */}
+          {/* Dossiers récents */}
           <div style={{ textAlign: 'center', position: 'relative', margin: '12px 0' }}>
             <div style={{ position: 'absolute', top: '50%', left: 0, right: 0, height: 1, background: '#F1F5F9', zIndex: 0 }} />
-            <span style={{ position: 'relative', background: '#F8FAFC', padding: '0 20px', color: '#94A3B8', fontSize: 13, zIndex: 1 }}>Dossiers exemples à tester</span>
+            <span style={{ position: 'relative', background: '#F8FAFC', padding: '0 20px', color: '#94A3B8', fontSize: 13, zIndex: 1 }}>Dossiers récents</span>
           </div>
 
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 24 }}>
-            {exampleRecords.map((record) => (
+            {recentRecords.slice(0, 3).map((record) => (
               <motion.div
                 key={record.id}
                 whileHover={{ y: -4 }}
+                onClick={() => setSearchQuery(record.identifiantUniqueNational)}
                 style={{
                   background: '#fff',
                   padding: 24,
@@ -162,15 +257,17 @@ export default function Verification() {
                   cursor: 'pointer'
                 }}
               >
-                <p style={{ fontSize: 11, fontWeight: 700, color: '#CBD5E1', marginBottom: 12 }}>{record.id}</p>
-                <h4 style={{ fontSize: 16, fontWeight: 700, color: '#1E293B', margin: '0 0 4px 0' }}>{record.name}</h4>
-                <p style={{ fontSize: 13, color: '#94A3B8', marginBottom: 16 }}>{record.region}</p>
+                <p style={{ fontSize: 11, fontWeight: 700, color: '#CBD5E1', marginBottom: 12 }}>{record.identifiantUniqueNational}</p>
+                <h4 style={{ fontSize: 16, fontWeight: 700, color: '#1E293B', margin: '0 0 4px 0' }}>
+                  {record.enfant?.prenoms} {record.enfant?.nom}
+                </h4>
+                <p style={{ fontSize: 13, color: '#94A3B8', marginBottom: 16 }}>{record.center?.nom || 'Centre non défini'}</p>
                 <div style={{ 
                   display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 12, fontWeight: 700,
-                  color: record.status === 'Vérifié' ? '#10B981' : '#F59E0B'
+                  color: record.statut === 'VALIDE' ? '#10B981' : '#F59E0B'
                 }}>
                   <div style={{ width: 6, height: 6, borderRadius: '50%', background: 'currentColor' }} />
-                  {record.status}
+                  {record.statut === 'VALIDE' ? 'Vérifié' : 'En attente'}
                 </div>
               </motion.div>
             ))}
@@ -193,31 +290,41 @@ export default function Verification() {
           >
             <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 24 }}>
               <History size={20} color="#64748B" />
-              <h3 style={{ fontSize: 16, fontWeight: 700, color: '#1E293B', margin: 0 }}>Recherches récentes</h3>
+              <h3 style={{ fontSize: 16, fontWeight: 700, color: '#1E293B', margin: 0 }}>Dossiers récents</h3>
             </div>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-              {recentSearches.map((item) => (
-                <div key={item.id} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '12px', borderRadius: 16, background: '#F8FAFC' }}>
-                  <div style={{ 
-                    width: 36, height: 36, borderRadius: 10, background: '#fff', 
-                    display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#10B981'
-                  }}>
-                    <FileText size={18} />
+              {recentRecords.length === 0 ? (
+                <p style={{ color: '#64748B', textAlign: 'center', padding: 20 }}>Aucun dossier</p>
+              ) : (
+                recentRecords.map((item) => (
+                  <div 
+                    key={item.id} 
+                    onClick={() => setSearchQuery(item.identifiantUniqueNational)}
+                    style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '12px', borderRadius: 16, background: '#F8FAFC', cursor: 'pointer' }}
+                  >
+                    <div style={{ 
+                      width: 36, height: 36, borderRadius: 10, background: '#fff', 
+                      display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#10B981'
+                    }}>
+                      <FileText size={18} />
+                    </div>
+                    <div style={{ flex: 1 }}>
+                      <p style={{ fontSize: 14, fontWeight: 600, color: '#1E293B', margin: 0 }}>
+                        {item.enfant?.prenoms} {item.enfant?.nom}
+                      </p>
+                      <p style={{ fontSize: 11, color: '#94A3B8', margin: 0 }}>{item.identifiantUniqueNational}</p>
+                    </div>
+                    <span style={{ 
+                      fontSize: 10, fontWeight: 700, padding: '4px 8px', borderRadius: 8,
+                      background: item.statut === 'VALIDE' ? '#ECFDF5' : '#FFFBEB',
+                      color: item.statut === 'VALIDE' ? '#10B981' : '#F59E0B'
+                    }}>
+                      {item.statut === 'VALIDE' ? 'Vérifié' : 'En attente'}
+                    </span>
                   </div>
-                  <div style={{ flex: 1 }}>
-                    <p style={{ fontSize: 14, fontWeight: 600, color: '#1E293B', margin: 0 }}>{item.name}</p>
-                    <p style={{ fontSize: 11, color: '#94A3B8', margin: 0 }}>{item.id}</p>
-                  </div>
-                  <span style={{ 
-                    fontSize: 10, fontWeight: 700, padding: '4px 8px', borderRadius: 8,
-                    background: item.status === 'Vérifié' ? '#ECFDF5' : '#FFFBEB',
-                    color: item.status === 'Vérifié' ? '#10B981' : '#F59E0B'
-                  }}>
-                    {item.status}
-                  </span>
-                </div>
-              ))}
+                ))
+              )}
             </div>
           </motion.div>
 

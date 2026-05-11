@@ -9,12 +9,14 @@ import {
   StatusBar,
   KeyboardAvoidingView,
   Platform,
+  Dimensions,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { MaterialIcons, Ionicons } from '@expo/vector-icons';
+import { MaterialIcons, Ionicons, Feather } from '@expo/vector-icons';
 import { Colors } from '../../theme/colors';
 import { useBirthForm } from '../../store/BirthContext';
 
+const { width } = Dimensions.get('window');
 
 export const RegisterBirthStep1 = ({ navigation }: any) => {
   const { formData, updateFormData } = useBirthForm();
@@ -32,43 +34,20 @@ export const RegisterBirthStep1 = ({ navigation }: any) => {
     lieuNaissanceLibelle: formData.lieuNaissanceLibelle || '',
   });
 
-  // Fonction de masquage pour la Date (JJ/MM/AAAA)
   const formatBirthDate = (text: string) => {
-    let clean = text.replace(/\D/g, ''); // Garder uniquement les chiffres
+    let clean = text.replace(/\D/g, '');
     if (clean.length > 8) clean = clean.slice(0, 8);
-    
     let formatted = clean;
-    if (clean.length > 2) {
-      const day = parseInt(clean.slice(0, 2));
-      const validDay = Math.min(Math.max(day, 1), 31).toString().padStart(2, '0');
-      formatted = `${validDay}/${clean.slice(2)}`;
-    }
-    if (clean.length > 4) {
-      const month = parseInt(clean.slice(2, 4));
-      const validMonth = Math.min(Math.max(month, 1), 12).toString().padStart(2, '0');
-      formatted = `${formatted.slice(0, 3)}${validMonth}/${clean.slice(4)}`;
-    }
-    
+    if (clean.length > 2) formatted = `${clean.slice(0, 2)}/${clean.slice(2)}`;
+    if (clean.length > 4) formatted = `${formatted.slice(0, 5)}/${clean.slice(4)}`;
     setLocalData({ ...localData, dateNaissanceEnfant: formatted });
   };
 
-  // Fonction de masquage pour l'Heure (HH:MM)
   const formatBirthTime = (text: string) => {
     let clean = text.replace(/\D/g, '');
     if (clean.length > 4) clean = clean.slice(0, 4);
-    
     let formatted = clean;
-    if (clean.length > 2) {
-      const hour = parseInt(clean.slice(0, 2));
-      const validHour = Math.min(hour, 23).toString().padStart(2, '0');
-      formatted = `${validHour}:${clean.slice(2)}`;
-    }
-    if (clean.length === 4) {
-      const minute = parseInt(clean.slice(2, 4));
-      const validMin = Math.min(minute, 59).toString().padStart(2, '0');
-      formatted = `${formatted.slice(0, 3)}${validMin}`;
-    }
-    
+    if (clean.length > 2) formatted = `${clean.slice(0, 2)}:${clean.slice(2)}`;
     setLocalData({ ...localData, heureNaissanceEnfant: formatted });
   };
 
@@ -80,155 +59,146 @@ export const RegisterBirthStep1 = ({ navigation }: any) => {
   const isValid = 
     localData.prenomsEnfant.length > 1 && 
     localData.nomEnfant.length > 1 &&
-    localData.dateNaissanceEnfant.length === 10 &&
-    localData.prefectureNaissance.length > 1;
+    localData.dateNaissanceEnfant.length === 10;
 
   return (
-    <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="light-content" />
+    <View style={styles.root}>
+      <StatusBar style="dark" />
+      
+      {/* Premium Step Header */}
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
-          <Ionicons name="arrow-back" size={24} color="#fff" />
-        </TouchableOpacity>
-        <View style={styles.headerInfo}>
-          <Text style={styles.stepCount}>Étape 1 sur 6</Text>
-          <Text style={styles.headerTitle}>Informations de l'Enfant</Text>
-        </View>
-        <View style={styles.progressCircle}>
-          <Text style={styles.progressText}>15%</Text>
-        </View>
+        <SafeAreaView edges={['top']}>
+          <View style={styles.headerContent}>
+            <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
+              <Feather name="chevron-left" size={24} color={Colors.primary} />
+            </TouchableOpacity>
+            <View style={styles.headerTitleContainer}>
+              <Text style={styles.headerSub}>NOUVEL ENREGISTREMENT</Text>
+              <Text style={styles.headerTitle}>L&apos;Enfant</Text>
+            </View>
+            <View style={styles.stepBadge}>
+              <Text style={styles.stepBadgeText}>1 / 6</Text>
+            </View>
+          </View>
+          
+          {/* Futuristic Progress Bar */}
+          <View style={styles.progressWrapper}>
+            <View style={styles.progressBase}>
+              <View style={[styles.progressFill, { width: '16.6%' }]} />
+            </View>
+          </View>
+        </SafeAreaView>
       </View>
 
       <KeyboardAvoidingView 
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'} 
-        style={{ flex: 1 }}
-        keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
+        style={styles.formContainer}
       >
         <ScrollView 
-          contentContainerStyle={[styles.scrollContent, { paddingBottom: 100 }]} 
+          contentContainerStyle={styles.scrollContent} 
           showsVerticalScrollIndicator={false}
-          keyboardShouldPersistTaps="handled"
         >
           
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Identité de l'Enfant</Text>
+          <View style={styles.formCard}>
+            <Text style={styles.sectionTitle}>Identité Civile</Text>
             
-            <View style={styles.field}>
-              <Text style={styles.fieldLabel}>Prénom(s)</Text>
-              <TextInput 
-                style={styles.input} 
-                placeholder="Ex: Mamadou Safaiou"
-                value={localData.prenomsEnfant}
-                onChangeText={(v) => setLocalData({...localData, prenomsEnfant: v})}
-              />
-            </View>
+            <FormInput 
+              label="Prénom(s)" 
+              placeholder="Ex: Ibrahima" 
+              value={localData.prenomsEnfant} 
+              onChangeText={(v) => setLocalData({...localData, prenomsEnfant: v})}
+              icon="user"
+            />
 
-            <View style={styles.field}>
-              <Text style={styles.fieldLabel}>Nom</Text>
-              <TextInput 
-                style={styles.input} 
-                placeholder="Ex: BARRY"
-                autoCapitalize="characters"
-                value={localData.nomEnfant}
-                onChangeText={(v) => setLocalData({...localData, nomEnfant: v})}
-              />
-            </View>
+            <FormInput 
+              label="Nom de famille" 
+              placeholder="Ex: DIALLO" 
+              value={localData.nomEnfant} 
+              onChangeText={(v) => setLocalData({...localData, nomEnfant: v})}
+              autoCapitalize="characters"
+              icon="users"
+            />
 
             <View style={styles.row}>
-              <View style={[styles.field, { flex: 1 }]}>
+              <View style={{ flex: 1 }}>
                 <Text style={styles.fieldLabel}>Sexe</Text>
-                <View style={styles.genderRow}>
+                <View style={styles.genderPicker}>
                   <TouchableOpacity 
-                    style={[styles.genderBtn, localData.sexeEnfant === 'MASCULIN' && styles.genderBtnActive]}
+                    style={[styles.genderOption, localData.sexeEnfant === 'MASCULIN' && styles.genderActiveM]}
                     onPress={() => setLocalData({...localData, sexeEnfant: 'MASCULIN'})}
                   >
-                    <Text style={[styles.genderBtnText, localData.sexeEnfant === 'MASCULIN' && styles.genderBtnTextActive]}>M</Text>
+                    <Text style={[styles.genderText, localData.sexeEnfant === 'MASCULIN' && styles.textWhite]}>M</Text>
                   </TouchableOpacity>
                   <TouchableOpacity 
-                    style={[styles.genderBtn, localData.sexeEnfant === 'FEMININ' && styles.genderBtnActiveF]}
+                    style={[styles.genderOption, localData.sexeEnfant === 'FEMININ' && styles.genderActiveF]}
                     onPress={() => setLocalData({...localData, sexeEnfant: 'FEMININ'})}
                   >
-                    <Text style={[styles.genderBtnText, localData.sexeEnfant === 'FEMININ' && styles.genderBtnTextActive]}>F</Text>
+                    <Text style={[styles.genderText, localData.sexeEnfant === 'FEMININ' && styles.textWhite]}>F</Text>
                   </TouchableOpacity>
                 </View>
               </View>
-              <View style={[styles.field, { flex: 1.5 }]}>
-                <Text style={styles.fieldLabel}>Nationalité</Text>
-                <TextInput 
-                  style={styles.input} 
-                  value={localData.nationaliteEnfant}
+              <View style={{ flex: 1.5 }}>
+                <FormInput 
+                  label="Nationalité" 
+                  value={localData.nationaliteEnfant} 
                   onChangeText={(v) => setLocalData({...localData, nationaliteEnfant: v})}
+                  icon="globe"
                 />
               </View>
             </View>
-          </View>
 
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Temps et Lieu</Text>
-            
+            <View style={styles.divider} />
+
+            <Text style={styles.sectionTitle}>Temps & Origine</Text>
+
             <View style={styles.row}>
-              <View style={[styles.field, { flex: 1.5 }]}>
-                <Text style={styles.fieldLabel}>Date de naissance</Text>
-                <TextInput 
-                  style={styles.input} 
+              <View style={{ flex: 1.5 }}>
+                <FormInput 
+                  label="Date de naissance" 
                   placeholder="JJ/MM/AAAA"
-                  keyboardType="number-pad"
-                  maxLength={10}
-                  value={localData.dateNaissanceEnfant}
+                  value={localData.dateNaissanceEnfant} 
                   onChangeText={formatBirthDate}
-                />
-              </View>
-              <View style={[styles.field, { flex: 1 }]}>
-                <Text style={styles.fieldLabel}>Heure</Text>
-                <TextInput 
-                  style={styles.input} 
-                  placeholder="HH:MM"
                   keyboardType="number-pad"
-                  maxLength={5}
-                  value={localData.heureNaissanceEnfant}
+                  icon="calendar"
+                />
+              </View>
+              <View style={{ flex: 1 }}>
+                <FormInput 
+                  label="Heure" 
+                  placeholder="HH:MM"
+                  value={localData.heureNaissanceEnfant} 
                   onChangeText={formatBirthTime}
+                  keyboardType="number-pad"
+                  icon="clock"
                 />
               </View>
             </View>
 
-            <View style={styles.field}>
-              <Text style={styles.fieldLabel}>Région de naissance</Text>
-              <TextInput 
-                style={styles.input} 
-                placeholder="Ex: KANKAN"
-                value={localData.regionNaissance}
-                onChangeText={(v) => setLocalData({...localData, regionNaissance: v})}
-              />
-            </View>
+            <FormInput 
+              label="Lieu / Structure de santé" 
+              placeholder="Ex: Hôpital de Kankan" 
+              value={localData.lieuNaissanceLibelle} 
+              onChangeText={(v) => setLocalData({...localData, lieuNaissanceLibelle: v})}
+              icon="map-pin"
+            />
 
-            <View style={styles.field}>
-              <Text style={styles.fieldLabel}>Préfecture de naissance</Text>
-              <TextInput 
-                style={styles.input} 
-                placeholder="Ex: KÉROUANÉ"
-                value={localData.prefectureNaissance}
-                onChangeText={(v) => setLocalData({...localData, prefectureNaissance: v})}
-              />
-            </View>
-
-            <View style={styles.field}>
-              <Text style={styles.fieldLabel}>Sous-Préfecture / Commune</Text>
-              <TextInput 
-                style={styles.input} 
-                placeholder="Ex: SABADOU-BARANAMA"
-                value={localData.sousPrefectureNaissance}
-                onChangeText={(v) => setLocalData({...localData, sousPrefectureNaissance: v})}
-              />
-            </View>
-
-            <View style={styles.field}>
-              <Text style={styles.fieldLabel}>Structure de santé (Optionnel)</Text>
-              <TextInput 
-                style={styles.input} 
-                placeholder="Ex: Hôpital National Donka"
-                value={localData.lieuNaissanceLibelle}
-                onChangeText={(v) => setLocalData({...localData, lieuNaissanceLibelle: v})}
-              />
+            <View style={styles.row}>
+              <View style={{ flex: 1 }}>
+                <FormInput 
+                  label="Région" 
+                  placeholder="Région" 
+                  value={localData.regionNaissance} 
+                  onChangeText={(v) => setLocalData({...localData, regionNaissance: v})}
+                />
+              </View>
+              <View style={{ flex: 1 }}>
+                <FormInput 
+                  label="Préfecture" 
+                  placeholder="Préfecture" 
+                  value={localData.prefectureNaissance} 
+                  onChangeText={(v) => setLocalData({...localData, prefectureNaissance: v})}
+                />
+              </View>
             </View>
           </View>
 
@@ -238,47 +208,66 @@ export const RegisterBirthStep1 = ({ navigation }: any) => {
             disabled={!isValid}
           >
             <Text style={styles.nextBtnText}>Suivant : Le Père</Text>
-            <Ionicons name="arrow-forward" size={20} color="#fff" />
+            <Feather name="arrow-right" size={20} color="#fff" />
           </TouchableOpacity>
 
           <View style={{ height: 40 }} />
         </ScrollView>
       </KeyboardAvoidingView>
-    </SafeAreaView>
+    </View>
   );
 };
 
+const FormInput = ({ label, icon, ...props }: any) => (
+  <View style={styles.inputGroup}>
+    <Text style={styles.fieldLabel}>{label}</Text>
+    <View style={styles.inputBox}>
+      {icon && <Feather name={icon} size={16} color={Colors.primary} style={styles.inputIcon} />}
+      <TextInput 
+        style={styles.input} 
+        placeholderTextColor="#A0A0A0"
+        {...props} 
+      />
+    </View>
+  </View>
+);
+
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#F8F9FA' },
-  header: { 
-    backgroundColor: '#006948', 
-    paddingHorizontal: 20, 
-    paddingVertical: 25, 
-    flexDirection: 'row', 
-    alignItems: 'center',
-    borderBottomLeftRadius: 30,
-    borderBottomRightRadius: 30,
-  },
-  backBtn: { width: 40, height: 40, borderRadius: 12, backgroundColor: 'rgba(255,255,255,0.2)', justifyContent: 'center', alignItems: 'center' },
-  headerInfo: { flex: 1, marginLeft: 15 },
-  stepCount: { fontSize: 12, color: 'rgba(255,255,255,0.6)', fontWeight: '600', textTransform: 'uppercase' },
-  headerTitle: { fontSize: 18, color: '#fff', fontWeight: '800' },
-  progressCircle: { width: 44, height: 44, borderRadius: 22, borderWidth: 2, borderColor: '#80f9c2', justifyContent: 'center', alignItems: 'center' },
-  progressText: { color: '#80f9c2', fontSize: 12, fontWeight: '800' },
-  scrollContent: { padding: 20 },
-  section: { backgroundColor: '#fff', borderRadius: 25, padding: 20, marginBottom: 20, elevation: 2, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.05, shadowRadius: 10 },
-  sectionTitle: { fontSize: 16, fontWeight: '800', color: '#1a1a1a', marginBottom: 20 },
-  field: { marginBottom: 15 },
-  fieldLabel: { fontSize: 12, fontWeight: '700', color: '#666', marginBottom: 8, marginLeft: 4 },
-  input: { backgroundColor: '#F1F3F5', borderRadius: 12, paddingHorizontal: 15, paddingVertical: 12, fontSize: 15, color: '#1a1a1a' },
-  row: { flexDirection: 'row', gap: 15 },
-  genderRow: { flexDirection: 'row', gap: 10 },
-  genderBtn: { flex: 1, height: 45, borderRadius: 12, backgroundColor: '#F1F3F5', justifyContent: 'center', alignItems: 'center', borderWidth: 1, borderColor: '#E9ECEF' },
-  genderBtnActive: { backgroundColor: '#006948', borderColor: '#006948' },
-  genderBtnActiveF: { backgroundColor: '#E91E63', borderColor: '#E91E63' },
-  genderBtnText: { fontWeight: '800', color: '#666' },
-  genderBtnTextActive: { color: '#fff' },
-  nextBtn: { backgroundColor: '#006948', borderRadius: 16, height: 56, flexDirection: 'row', justifyContent: 'center', alignItems: 'center', gap: 10, marginTop: 10, elevation: 4, shadowColor: '#006948', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 8 },
-  nextBtnDisabled: { backgroundColor: '#ADB5BD', elevation: 0, shadowOpacity: 0 },
-  nextBtnText: { color: '#fff', fontSize: 16, fontWeight: '800' },
+  root: { flex: 1, backgroundColor: '#F8FAF9' },
+  header: { backgroundColor: '#fff', borderBottomLeftRadius: 40, borderBottomRightRadius: 40, paddingBottom: 25, shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.05, shadowRadius: 10, elevation: 2 },
+  headerContent: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 20, paddingTop: 10, marginBottom: 20 },
+  backBtn: { width: 44, height: 44, borderRadius: 14, backgroundColor: Colors.primary + '10', justifyContent: 'center', alignItems: 'center' },
+  headerTitleContainer: { flex: 1, marginLeft: 16 },
+  headerSub: { fontSize: 10, color: Colors.primary, fontWeight: '800', letterSpacing: 1.5, opacity: 0.6 },
+  headerTitle: { fontSize: 24, color: Colors.onSurface, fontWeight: '900', letterSpacing: -0.5 },
+  stepBadge: { paddingHorizontal: 12, paddingVertical: 6, borderRadius: 12, backgroundColor: Colors.primary + '15' },
+  stepBadgeText: { color: Colors.primary, fontSize: 12, fontWeight: '800' },
+  progressWrapper: { paddingHorizontal: 40 },
+  progressBase: { height: 4, backgroundColor: '#F0F0F0', borderRadius: 2, overflow: 'hidden' },
+  progressFill: { height: '100%', backgroundColor: Colors.primary, borderRadius: 2 },
+  
+  formContainer: { flex: 1 },
+  scrollContent: { padding: 10 },
+  formCard: { backgroundColor: '#fff', borderRadius: 32, padding: 16, shadowColor: '#000', shadowOffset: { width: 0, height: 10 }, shadowOpacity: 0.04, shadowRadius: 20, elevation: 3, marginBottom: 24 },
+  sectionTitle: { fontSize: 18, fontWeight: '900', color: Colors.onSurface, marginBottom: 20, letterSpacing: -0.5 },
+  
+  inputGroup: { marginBottom: 18 },
+  fieldLabel: { fontSize: 12, fontWeight: '800', color: Colors.onSurface, marginBottom: 8, opacity: 0.5, marginLeft: 4 },
+  inputBox: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#F8FAF9', borderRadius: 16, paddingHorizontal: 16, height: 64, borderWidth: 1, borderColor: '#F0F0F0' },
+  inputIcon: { marginRight: 12, opacity: 0.7 },
+  input: { flex: 1, fontSize: 16, fontWeight: '600', color: Colors.onSurface },
+  
+  row: { flexDirection: 'row', gap: 16 },
+  genderPicker: { flexDirection: 'row', backgroundColor: '#F8FAF9', borderRadius: 16, padding: 4, height: 64, borderWidth: 1, borderColor: '#F0F0F0' },
+  genderOption: { flex: 1, justifyContent: 'center', alignItems: 'center', borderRadius: 12 },
+  genderActiveM: { backgroundColor: Colors.primary },
+  genderActiveF: { backgroundColor: '#FF5252' },
+  genderText: { fontSize: 14, fontWeight: '800', color: Colors.primary },
+  textWhite: { color: '#fff' },
+  
+  divider: { height: 1, backgroundColor: '#F0F0F0', marginVertical: 24 },
+  
+  nextBtn: { backgroundColor: Colors.primary, height: 64, borderRadius: 24, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 12, shadowColor: Colors.primary, shadowOffset: { width: 0, height: 10 }, shadowOpacity: 0.3, shadowRadius: 20, elevation: 8 },
+  nextBtnDisabled: { backgroundColor: '#E0E0E0', elevation: 0, shadowOpacity: 0 },
+  nextBtnText: { color: '#fff', fontSize: 16, fontWeight: '800' }
 });

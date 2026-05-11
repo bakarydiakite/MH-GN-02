@@ -44,7 +44,7 @@ export class AuthService {
         });
       }
 
-      return this.generateToken(user);
+      return await this.generateToken(user);
     } catch (error) {
       throw new UnauthorizedException('Google authentication failed');
     }
@@ -105,7 +105,7 @@ export class AuthService {
       });
     }
 
-    return this.generateToken(user);
+    return await this.generateToken(user);
   }
 
   async login(dto: LoginDto) {
@@ -168,7 +168,7 @@ export class AuthService {
 
     // LOGIQUE SPÉCIFIQUE DÉMO : Pas de mot de passe requis pour les FAMILLES
     if (user.role === 'FAMILLE') {
-      return this.generateToken(user);
+      return await this.generateToken(user);
     }
 
     // Pour les AGENTS, le mot de passe reste obligatoire
@@ -178,15 +178,31 @@ export class AuthService {
       throw new UnauthorizedException('Identifiants invalides');
     }
 
-    return this.generateToken(user);
+    return await this.generateToken(user);
   }
 
-  private generateToken(user: any) {
+  private async generateToken(user: any) {
     const payload = { 
       sub: user.id, 
       email: user.email, 
       role: user.role 
     };
+
+    // Récupérer le centre si l'utilisateur est un agent ou superviseur
+    let centreId = null;
+    let centreNom = null;
+    
+    if (['AGENT', 'SUPERVISEUR'].includes(user.role)) {
+      const agent = await this.prisma.agent.findUnique({
+        where: { utilisateurId: user.id },
+        include: { center: true }
+      });
+      
+      if (agent?.center) {
+        centreId = agent.center.id;
+        centreNom = agent.center.nom;
+      }
+    }
 
     return {
       access_token: this.jwtService.sign(payload),
@@ -196,6 +212,8 @@ export class AuthService {
         nom: user.nom,
         prenom: user.prenom,
         role: user.role,
+        centreId,
+        centreNom,
       },
     };
   }

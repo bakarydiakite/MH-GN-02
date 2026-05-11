@@ -14,17 +14,30 @@ import {
 } from 'lucide-react';
 import { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
+import { useAuth } from '../../contexts/AuthContext';
 
-const menuPrincipal = [
-  { icon: LayoutDashboard, label: 'Dashboard', path: '/admin' },
-  { icon: FileText, label: 'Enregistrements', path: '/admin/records' },
-  { icon: ShieldCheck, label: 'Vérification', path: '/admin/verification', badge: 'Core' },
-  { icon: BarChart3, label: 'Statistiques', path: '/admin/stats' },
-  { icon: Users, label: 'Utilisateurs', path: '/admin/users' },
-  { icon: Building2, label: 'Structures', path: '/admin/structures' },
-  { icon: RefreshCcw, label: 'Synchronisation', path: '/admin/sync' },
-  { icon: History, label: 'Historique', path: '/admin/history' },
-];
+// Menus par rôle
+const getMenuByRole = (role: string) => {
+  const baseMenu = [
+    { icon: LayoutDashboard, label: 'Dashboard', path: '/admin' },
+    { icon: FileText, label: 'Dossiers', path: '/admin/records' },
+    { icon: ShieldCheck, label: 'Vérification', path: '/admin/verification' },
+  ];
+
+  const adminOnlyMenu = [
+    { icon: Users, label: 'Utilisateurs', path: '/admin/users' },
+    { icon: Building2, label: 'Structures', path: '/admin/structures' },
+    { icon: RefreshCcw, label: 'Synchronisation', path: '/admin/sync' },
+    { icon: BarChart3, label: 'Statistiques', path: '/admin/stats' },
+    { icon: History, label: 'Historique', path: '/admin/history' },
+  ];
+
+  if (role === 'ADMINISTRATEUR') {
+    return [...baseMenu, ...adminOnlyMenu];
+  }
+  
+  return baseMenu;
+};
 
 const menuCompte = [
   { icon: Settings, label: 'Paramètres', path: '/admin/settings' },
@@ -33,6 +46,9 @@ const menuCompte = [
 export default function Sidebar() {
   const [isCollapsed, setIsCollapsed] = useState(false);
   const location = useLocation();
+  const { user } = useAuth();
+  const userRole = user?.role || 'VERIFICATEUR';
+  const menuPrincipal = getMenuByRole(userRole);
 
   const renderNavItem = (item: any) => {
     const isActive = location.pathname === item.path;
@@ -167,8 +183,12 @@ export default function Sidebar() {
           </div>
           {!isCollapsed && (
             <div style={{ flex: 1, overflow: 'hidden' }}>
-              <p style={{ fontSize: 14, fontWeight: 600, margin: 0, color: '#fff' }}>Admin User</p>
-              <p style={{ fontSize: 11, color: '#64748B', margin: 0, textOverflow: 'ellipsis', overflow: 'hidden' }}>admin@naissancechain.gov</p>
+              <p style={{ fontSize: 14, fontWeight: 600, margin: 0, color: '#fff' }}>
+                {user?.prenom} {user?.nom}
+              </p>
+              <p style={{ fontSize: 10, color: '#4DFFC3', margin: 0, textOverflow: 'ellipsis', overflow: 'hidden', fontWeight: 600 }}>
+                {userRole}
+              </p>
             </div>
           )}
         </div>

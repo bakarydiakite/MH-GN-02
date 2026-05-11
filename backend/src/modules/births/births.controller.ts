@@ -1,4 +1,4 @@
-import { Controller, Post, Get, Body, Param, UseGuards, Request, Query } from '@nestjs/common';
+import { Controller, Post, Get, Body, Param, Query, UseGuards, Request, Delete } from '@nestjs/common';
 import { BirthsService } from './births.service';
 import { CreateBirthDto, ValidateBirthDto } from './dto/birth.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
@@ -16,12 +16,25 @@ export class BirthsController {
     return this.birthsService.create(req.user.userId, dto);
   }
 
-  // @UseGuards(JwtAuthGuard) // Désactivé pour la démo
+  @UseGuards(JwtAuthGuard)
   @Get()
   findAll(@Request() req: any, @Query() filters: any) {
-    return this.birthsService.findAll({ ...filters, userId: null }); // null pour userId (pas d'auth)
+    return this.birthsService.findAll({ ...filters, userId: req.user.userId });
   }
 
+  @UseGuards(JwtAuthGuard)
+  @Get('by-status/:status')
+  findByStatus(@Param('status') status: string) {
+    return this.birthsService.findByStatus(status);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Get('pending')
+  findPending() {
+    return this.birthsService.findPending();
+  }
+
+  @UseGuards(JwtAuthGuard)
   @Get('verify/:iun')
   verify(@Param('iun') iun: string) {
     return this.birthsService.verify(iun);
@@ -33,24 +46,39 @@ export class BirthsController {
     return this.birthsService.linkChildToUser(req.user.userId, iun);
   }
 
-  // @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard)
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.birthsService.findOne(id);
   }
 
-  // @UseGuards(JwtAuthGuard, RolesGuard)
-  // @Roles(UserRole.SUPERVISEUR, UserRole.ADMINISTRATEUR)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.SUPERVISEUR, UserRole.ADMINISTRATEUR)
   @Post(':id/validate')
   validate(@Param('id') id: string, @Request() req: any) {
-    // Note: on utilise un ID temporaire puisqu'il n'y a plus de req.user
-    return this.birthsService.validate(id, 'admin-id-test');
+    return this.birthsService.validate(id, req.user.userId);
   }
 
-  // @UseGuards(JwtAuthGuard, RolesGuard)
-  // @Roles(UserRole.SUPERVISEUR, UserRole.ADMINISTRATEUR)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.SUPERVISEUR, UserRole.ADMINISTRATEUR)
   @Post(':id/reject')
-  reject(@Param('id') id: string, @Request() req: any, @Body() dto: ValidateBirthDto) {
+  reject(@Param('id') id: string, @Body() dto: ValidateBirthDto, @Request() req: any) {
     return this.birthsService.reject(id, req.user.userId, dto);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Post(':id/attachments')
+  addAttachment(
+    @Param('id') id: string,
+    @Body() body: { type: string; urlFichier: string; nomFichier?: string }
+  ) {
+    return this.birthsService.addAttachment(id, body.type, body.urlFichier, body.nomFichier);
+  }
+
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.ADMINISTRATEUR)
+  @Post('seed-attachments')
+  seedAttachments() {
+    return this.birthsService.seedAttachments();
   }
 }

@@ -110,17 +110,16 @@ export const LinkChildScreen = ({ navigation }: any) => {
             barcodeScannerSettings={{
               barcodeTypes: ['qr'],
             }}
-          >
-            <View style={styles.overlay}>
+          />
+          <View style={styles.overlay}>
+            <View style={styles.unfocusedContainer} />
+            <View style={styles.middleContainer}>
               <View style={styles.unfocusedContainer} />
-              <View style={styles.middleContainer}>
-                <View style={styles.unfocusedContainer} />
-                <View style={styles.focusedContainer} />
-                <View style={styles.unfocusedContainer} />
-              </View>
+              <View style={styles.focusedContainer} />
               <View style={styles.unfocusedContainer} />
             </View>
-          </CameraView>
+            <View style={styles.unfocusedContainer} />
+          </View>
           <Text style={styles.hint}>Placez le QR Code de l'acte de naissance dans le carré</Text>
         </View>
       ) : (
@@ -178,7 +177,7 @@ const styles = StyleSheet.create({
   activeTabText: { color: Colors.primary },
   cameraContainer: { flex: 1, alignItems: 'center' },
   camera: { width: width * 0.85, height: width * 0.85, borderRadius: 24, overflow: 'hidden' },
-  overlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.3)' },
+  overlay: { ...StyleSheet.absoluteFillObject, top: 0, height: width * 0.85, backgroundColor: 'transparent' },
   unfocusedContainer: { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)' },
   middleContainer: { flexDirection: 'row', height: 200 },
   focusedContainer: { flex: 2, borderColor: '#fff', borderWidth: 2, borderRadius: 20 },
