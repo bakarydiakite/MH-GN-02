@@ -318,7 +318,7 @@ npm run test:cov
 
 | Rôle | Email | Mot de passe |
 |------|-------|--------------|
-| Agent | agent@naissancechain.gn | Agent@2026! |
+| Agent | agent@naissancechain.gn | Agent@2026 |
 | Superviseur | superviseur@naissancechain.gn | Sup@2026! |
 | Admin | admin@naissancechain.gn | Admin@2026! |
 
@@ -374,6 +374,7 @@ Ce projet est sous licence MIT - voir le fichier [LICENSE](LICENSE) pour plus de
 🌍 *NaissanceChain - MIABE Hackathon 2026*
 
 </div>
+<<<<<<< HEAD
 
 
 
@@ -504,3 +505,6 @@ Phase 3 : Validation par superviseur ✅
 
 Feedback submitted
     
+=======
+    
+>>>>>>> 8ea074c37efb4f45b9b056dffc225c936b37d9b0
