@@ -12,17 +12,21 @@ import {
   Menu,
   X,
   ChevronDown,
-  User
+  User,
+  MapPin,
+  Settings,
 } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import { useState } from 'react';
 
 const menuItems = [
+  { path: '/admin/profile', icon: Settings, label: 'Profil', roles: ['ADMINISTRATEUR', 'SUPERVISEUR', 'VERIFICATEUR'] },
   { path: '/admin', icon: LayoutDashboard, label: 'Dashboard', roles: ['ADMINISTRATEUR', 'SUPERVISEUR', 'VERIFICATEUR'] },
   { path: '/admin/records', icon: FileText, label: 'Dossiers', roles: ['ADMINISTRATEUR', 'SUPERVISEUR', 'VERIFICATEUR'] },
   { path: '/admin/users', icon: Users, label: 'Utilisateurs', roles: ['ADMINISTRATEUR'] },
   { path: '/admin/structures', icon: Building2, label: 'Structures', roles: ['ADMINISTRATEUR', 'SUPERVISEUR'] },
   { path: '/admin/stats', icon: BarChart3, label: 'Statistiques', roles: ['ADMINISTRATEUR', 'SUPERVISEUR'] },
+  { path: '/admin/field-map', icon: MapPin, label: 'Couverture terrain', roles: ['ADMINISTRATEUR', 'SUPERVISEUR'] },
   { path: '/admin/verification', icon: Shield, label: 'Vérification', roles: ['ADMINISTRATEUR', 'SUPERVISEUR', 'VERIFICATEUR'] },
 ];
 
@@ -257,6 +261,25 @@ export default function Layout() {
                   <p style={{ fontWeight: 600, color: '#1E293B' }}>{user?.email}</p>
                   <span style={{ fontSize: 12, color: '#64748B' }}>{user?.centreNom || 'N/A'}</span>
                 </div>
+                <NavLink
+                  to="/admin/profile"
+                  onClick={() => setUserMenuOpen(false)}
+                  style={({ isActive }) => ({
+                    display: 'block',
+                    width: '100%',
+                    padding: 12,
+                    textAlign: 'left',
+                    background: isActive ? '#f1f5f9' : 'transparent',
+                    border: 'none',
+                    borderBottom: '1px solid #F1F5F9',
+                    cursor: 'pointer',
+                    fontWeight: 600,
+                    color: '#0f172a',
+                    textDecoration: 'none',
+                  })}
+                >
+                  Paramètres du profil
+                </NavLink>
                 <button
                   onClick={handleLogout}
                   style={{

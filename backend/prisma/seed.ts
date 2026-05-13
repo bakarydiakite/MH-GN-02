@@ -53,21 +53,49 @@ async function main() {
 
   // 2. Centres
   console.log('🏥 Création des centres...');
+  /** Format attendu par l’API carte / Prisma (lat,lng décimaux). */
+  const coords = {
+    conakryKaloum: '9.5092,-13.7122',
+    conakryMatoto: '9.5650,-13.3580',
+    labe: '11.3167,-12.2833',
+  } as const;
+
   await Promise.all([
     prisma.center.upsert({
       where: { id: UUID.center1 },
-      update: {},
-      create: { id: UUID.center1, nom: 'Centre Principal Conakry', type: CenterType.HOPITAL, prefectureId: UUID.pref1, actif: true },
+      update: { coordonneesGps: coords.conakryKaloum },
+      create: {
+        id: UUID.center1,
+        nom: 'Centre Principal Conakry',
+        type: CenterType.HOPITAL,
+        prefectureId: UUID.pref1,
+        actif: true,
+        coordonneesGps: coords.conakryKaloum,
+      },
     }),
     prisma.center.upsert({
       where: { id: UUID.center2 },
-      update: {},
-      create: { id: UUID.center2, nom: 'Centre Matoto', type: CenterType.MATERNITE, prefectureId: UUID.pref2, actif: true },
+      update: { coordonneesGps: coords.conakryMatoto },
+      create: {
+        id: UUID.center2,
+        nom: 'Centre Matoto',
+        type: CenterType.MATERNITE,
+        prefectureId: UUID.pref2,
+        actif: true,
+        coordonneesGps: coords.conakryMatoto,
+      },
     }),
     prisma.center.upsert({
       where: { id: UUID.center3 },
-      update: {},
-      create: { id: UUID.center3, nom: 'Centre Labé', type: CenterType.PREFECTURE, prefectureId: UUID.pref3, actif: true },
+      update: { coordonneesGps: coords.labe },
+      create: {
+        id: UUID.center3,
+        nom: 'Centre Labé',
+        type: CenterType.PREFECTURE,
+        prefectureId: UUID.pref3,
+        actif: true,
+        coordonneesGps: coords.labe,
+      },
     }),
   ]);
   console.log('   ✅ 3 centres créés\n');
@@ -158,7 +186,7 @@ async function main() {
       parents: {
         createMany: {
           data: [
-            { type: 'MERE', nom: 'Diallo', prenom: 'Aminata', telephone: '+224 620 11 11 11' },
+            { type: 'MERE', nom: 'Diallo', prenom: 'Aminata', telephone: '+224 620 00 00 06' },
             { type: 'PERE', nom: 'Diakité', prenom: 'Ibrahima', telephone: '+224 620 22 22 22' },
           ],
         },
@@ -169,6 +197,10 @@ async function main() {
       acteNumerique: {
         create: { numeroActe: 'ACTE-GN-2024-001ABC', qrCodeData: 'GN-2024-001ABC' },
       },
+      enregistrementLatitude: 9.5095,
+      enregistrementLongitude: -13.7118,
+      enregistrementPrecisionM: 12,
+      enregistrementCaptureLe: new Date(),
     },
   });
 

@@ -1,4 +1,5 @@
-import { IsString, IsNotEmpty, IsDateString, IsOptional, IsEnum, IsUUID } from 'class-validator';
+import { IsString, IsNotEmpty, IsOptional, IsUUID, IsNumber } from 'class-validator';
+import { Type } from 'class-transformer';
 
 export class CreateBirthDto {
   // --- ENFANT ---
@@ -60,8 +61,74 @@ export class CreateBirthDto {
   @IsString() @IsOptional() cniMerePhoto?: string;
   @IsString() @IsOptional() cniPerePhoto?: string;
   @IsString() @IsOptional() acteMariagePhoto?: string;
+
+  // --- Géolocalisation enregistrement (agent sur le terrain) ---
+  @IsOptional()
+  @Type(() => Number)
+  @IsNumber()
+  enregistrementLatitude?: number;
+
+  @IsOptional()
+  @Type(() => Number)
+  @IsNumber()
+  enregistrementLongitude?: number;
+
+  @IsOptional()
+  @Type(() => Number)
+  @IsNumber()
+  enregistrementPrecisionM?: number;
 }
 
 export class ValidateBirthDto {
   @IsString() @IsOptional() commentaireRejet?: string;
+}
+
+/** Rejet superviseur : motif obligatoire (affiché à l’agent). */
+export class RejectBirthDto {
+  @IsString()
+  @IsNotEmpty()
+  motif!: string;
+}
+
+/** Mise à jour d’un dossier rejeté par l’agent (champs partiels). */
+export class UpdateRejectedBirthDto {
+  @IsString() @IsOptional() prenomsEnfant?: string;
+  @IsString() @IsOptional() nomEnfant?: string;
+  @IsString() @IsOptional() dateNaissanceEnfant?: string;
+  @IsString() @IsOptional() heureNaissanceEnfant?: string;
+  @IsString() @IsOptional() sexeEnfant?: 'MASCULIN' | 'FEMININ';
+  @IsString() @IsOptional() nationaliteEnfant?: string;
+  @IsString() @IsOptional() regionNaissance?: string;
+  @IsString() @IsOptional() lieuNaissanceLibelle?: string;
+  @IsUUID() @IsOptional() prefectureNaissanceId?: string;
+  @IsUUID() @IsOptional() sousPrefectureNaissanceId?: string;
+  @IsUUID() @IsOptional() communeNaissanceId?: string;
+  @IsUUID() @IsOptional() villageNaissanceId?: string;
+
+  @IsString() @IsOptional() nomMere?: string;
+  @IsString() @IsOptional() prenomMere?: string;
+  @IsString() @IsOptional() dateNaissanceMere?: string;
+  @IsString() @IsOptional() professionMere?: string;
+  @IsString() @IsOptional() nationaliteMere?: string;
+  @IsString() @IsOptional() idNationalMere?: string;
+  @IsString() @IsOptional() cniMere?: string;
+  @IsString() @IsOptional() telephoneMere?: string;
+
+  @IsString() @IsOptional() nomPere?: string;
+  @IsString() @IsOptional() prenomPere?: string;
+  @IsString() @IsOptional() dateNaissancePere?: string;
+  @IsString() @IsOptional() professionPere?: string;
+  @IsString() @IsOptional() nationalitePere?: string;
+  @IsString() @IsOptional() idNationalPere?: string;
+  @IsString() @IsOptional() cniPere?: string;
+  @IsString() @IsOptional() telephonePere?: string;
+
+  @IsString() @IsOptional() regionParents?: string;
+  @IsString() @IsOptional() quartierParents?: string;
+  @IsString() @IsOptional() secteurParents?: string;
+
+  @IsString() @IsOptional() nomDeclarant?: string;
+  @IsString() @IsOptional() idNationalDeclarant?: string;
+  @IsString() @IsOptional() cniDeclarant?: string;
+  @IsString() @IsOptional() lienParenteDeclarant?: string;
 }

@@ -136,7 +136,7 @@ export const apiService = {
       const response = await fetch(`${API_BASE_URL}/births/${id}/reject`, {
         method: 'POST',
         headers: getAuthHeaders(),
-        body: JSON.stringify({ commentaireRejet: motif }),
+        body: JSON.stringify({ motif }),
       });
       
       if (!response.ok) {
@@ -162,5 +162,127 @@ export const apiService = {
       console.error('Erreur Blockchain API:', error);
       return { verified: false, mode: 'error' };
     }
-  }
+  },
+
+  /**
+   * Carte terrain (admin / superviseur uniquement, hors vérificateur — cahier des charges).
+   * Query optionnelle : `?from=2026-01-01&to=2026-12-31` (ISO date).
+   */
+  async getFieldMap(queryString = '') {
+    const response = await fetch(`${API_BASE_URL}/stats/field-map${queryString}`, {
+      method: 'GET',
+      headers: getAuthHeaders(),
+    });
+    if (!response.ok) {
+      const err = await response.json().catch(() => ({}));
+      throw new Error(err.message || `Erreur HTTP: ${response.status}`);
+    }
+    return response.json();
+  },
+
+  /** Recherche de lieux en Guinée (Nominatim via backend). Admin / superviseur. */
+  async geocodeGuinea(q: string) {
+    const response = await fetch(`${API_BASE_URL}/stats/geocode?q=${encodeURIComponent(q)}`, {
+      method: 'GET',
+      headers: getAuthHeaders(),
+    });
+    if (!response.ok) {
+      const err = await response.json().catch(() => ({}));
+      throw new Error(err.message || `Erreur HTTP: ${response.status}`);
+    }
+    return response.json() as Promise<{
+      results: { lat: number; lng: number; displayName: string }[];
+    }>;
+  },
+
+  async getMe() {
+    const response = await fetch(`${API_BASE_URL}/users/me`, {
+      headers: getAuthHeaders(),
+    });
+    if (!response.ok) {
+      const err = await response.json().catch(() => ({}));
+      throw new Error(err.message || `Erreur HTTP: ${response.status}`);
+    }
+    return response.json();
+  },
+
+  async patchMe(body: {
+    prenom?: string;
+    nom?: string;
+    telephone?: string;
+    photoUrl?: string;
+    password?: string;
+  }) {
+    const response = await fetch(`${API_BASE_URL}/users/me`, {
+      method: 'PATCH',
+      headers: getAuthHeaders(),
+      body: JSON.stringify(body),
+    });
+    if (!response.ok) {
+      const err = await response.json().catch(() => ({}));
+      throw new Error(err.message || `Erreur HTTP: ${response.status}`);
+    }
+    return response.json();
+  },
+
+  async getBirth(id: string) {
+    const response = await fetch(`${API_BASE_URL}/births/${id}`, {
+      headers: getAuthHeaders(),
+    });
+    if (!response.ok) {
+      const err = await response.json().catch(() => ({}));
+      throw new Error(err.message || `Erreur HTTP: ${response.status}`);
+    }
+    return response.json();
+  },
+
+  async linkBirthIun(iun: string) {
+    const response = await fetch(`${API_BASE_URL}/births/link`, {
+      method: 'POST',
+      headers: getAuthHeaders(),
+      body: JSON.stringify({ iun }),
+    });
+    if (!response.ok) {
+      const err = await response.json().catch(() => ({}));
+      throw new Error(err.message || `Erreur HTTP: ${response.status}`);
+    }
+    return response.json();
+  },
+
+  async getAgentRejections() {
+    const response = await fetch(`${API_BASE_URL}/births/agent/rejections`, {
+      headers: getAuthHeaders(),
+    });
+    if (!response.ok) {
+      const err = await response.json().catch(() => ({}));
+      throw new Error(err.message || `Erreur HTTP: ${response.status}`);
+    }
+    const data = await response.json();
+    return Array.isArray(data) ? data : [];
+  },
+
+  async resubmitBirth(id: string) {
+    const response = await fetch(`${API_BASE_URL}/births/${id}/resubmit`, {
+      method: 'POST',
+      headers: getAuthHeaders(),
+    });
+    if (!response.ok) {
+      const err = await response.json().catch(() => ({}));
+      throw new Error(err.message || `Erreur HTTP: ${response.status}`);
+    }
+    return response.json();
+  },
+
+  async patchRejectedBirth(id: string, body: Record<string, unknown>) {
+    const response = await fetch(`${API_BASE_URL}/births/${id}`, {
+      method: 'PATCH',
+      headers: getAuthHeaders(),
+      body: JSON.stringify(body),
+    });
+    if (!response.ok) {
+      const err = await response.json().catch(() => ({}));
+      throw new Error(err.message || `Erreur HTTP: ${response.status}`);
+    }
+    return response.json();
+  },
 };

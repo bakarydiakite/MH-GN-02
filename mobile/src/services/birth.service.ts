@@ -63,6 +63,11 @@ export interface CreateBirthData {
   cniMerePhoto?: string;
   cniPerePhoto?: string;
   acteMariagePhoto?: string;
+
+  /** Position GPS au moment de la saisie (supervision carte) */
+  enregistrementLatitude?: number;
+  enregistrementLongitude?: number;
+  enregistrementPrecisionM?: number;
 }
 
 class BirthService {

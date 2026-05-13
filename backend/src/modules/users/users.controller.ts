@@ -6,6 +6,7 @@ import { Roles } from '../auth/decorators/roles.decorator';
 import { UserRole } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
 import { PrismaService } from '../../shared/prisma/prisma.service';
+import { UpdateProfileDto } from './dto/update-profile.dto';
 
 @Controller('users')
 export class UsersController {
@@ -14,7 +15,6 @@ export class UsersController {
     private readonly prisma: PrismaService,
   ) {}
 
-  // GET /users/centers - Liste tous les centres
   @UseGuards(JwtAuthGuard)
   @Get('centers')
   findAllCenters() {
@@ -24,7 +24,33 @@ export class UsersController {
     });
   }
 
-  // GET /users - Liste tous les utilisateurs
+  /** Profil de l’utilisateur connecté (doit être déclaré avant GET :id). */
+  @UseGuards(JwtAuthGuard)
+  @Get('me')
+  getMe(@Request() req: { user: { userId: string } }) {
+    return this.usersService.findOne(req.user.userId);
+  }
+
+  /** Mise à jour du profil connecté (doit être déclaré avant PATCH :id). */
+  @UseGuards(JwtAuthGuard)
+  @Patch('me')
+  async updateMe(@Request() req: { user: { userId: string } }, @Body() body: UpdateProfileDto) {
+    const userId = req.user.userId;
+    const { password, ...rest } = body;
+    const updateData: Record<string, unknown> = {};
+    if (rest.prenom !== undefined) updateData.prenom = rest.prenom;
+    if (rest.nom !== undefined) updateData.nom = rest.nom;
+    if (rest.telephone !== undefined) updateData.telephone = rest.telephone;
+    if (rest.photoUrl !== undefined) updateData.photoUrl = rest.photoUrl;
+    if (password && password.length > 0) {
+      updateData.motDePasseHash = await bcrypt.hash(password, 10);
+    }
+    if (Object.keys(updateData).length === 0) {
+      return this.usersService.findOne(userId);
+    }
+    return this.usersService.update(userId, updateData);
+  }
+
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.ADMINISTRATEUR)
   @Get()
@@ -32,14 +58,6 @@ export class UsersController {
     return this.usersService.findAll();
   }
 
-  // GET /users/:id - Récupère un utilisateur
-  @UseGuards(JwtAuthGuard)
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.usersService.findOne(id);
-  }
-
-  // POST /users - Crée un utilisateur
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.ADMINISTRATEUR)
   @Post()
@@ -52,7 +70,6 @@ export class UsersController {
     });
   }
 
-  // PATCH /users/:id - Met à jour un utilisateur
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.ADMINISTRATEUR)
   @Patch(':id')
@@ -65,29 +82,16 @@ export class UsersController {
     return this.usersService.update(id, updateData);
   }
 
-  // PATCH /users/me - Met à jour le profil de l'utilisateur connecté
-  @UseGuards(JwtAuthGuard)
-  @Patch('me')
-  async updateMe(@Request() req: any, @Body() body: { prenom?: string, nom?: string, telephone?: string, photoUrl?: string }) {
-    try {
-      const userId = req.user.userId;
-      return await this.usersService.update(userId, {
-        prenom: body.prenom,
-        nom: body.nom,
-        telephone: body.telephone,
-        photoUrl: body.photoUrl,
-      });
-    } catch (error) {
-      console.error('UpdateMe Error:', error);
-      throw error;
-    }
-  }
-
-  // DELETE /users/:id - Supprime un utilisateur
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.ADMINISTRATEUR)
   @Delete(':id')
   remove(@Param('id') id: string) {
     return this.usersService.remove(id);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Get(':id')
+  findOne(@Param('id') id: string) {
+    return this.usersService.findOne(id);
   }
 }

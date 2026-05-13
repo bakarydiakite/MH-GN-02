@@ -12,15 +12,17 @@ import {
   X,
   FileText,
   Image,
-  File
+  File,
+  Printer,
 } from 'lucide-react';
 import { apiService } from '../../services/api';
 import { useAuth } from '../../contexts/AuthContext';
+import BirthCertificateView from '../../components/BirthCertificateView';
 
 // Statuts possibles
 const STATUS_CONFIG: Record<string, { label: string; color: string; bgColor: string; icon: React.ReactNode }> = {
   'EN_ATTENTE': { label: 'En attente', color: '#F59E0B', bgColor: '#FFFBEB', icon: <Clock size={14} /> },
-  'VALIDE': { label: 'Validé', color: '#10B981', bgColor: '#ECFDF5', icon: <CheckCircle2 size={14} /> },
+  'VALIDE': { label: 'Vérifié', color: '#10B981', bgColor: '#ECFDF5', icon: <CheckCircle2 size={14} /> },
   'REJETE': { label: 'Rejeté', color: '#EF4444', bgColor: '#FEF2F2', icon: <XCircle size={14} /> },
   'SYNCHRONISE': { label: 'Synchronisé', color: '#3B82F6', bgColor: '#EFF6FF', icon: <CheckCircle2 size={14} /> },
   'BROUILLON': { label: 'Brouillon', color: '#6B7280', bgColor: '#F3F4F6', icon: <Clock size={14} /> },
@@ -54,6 +56,24 @@ export default function Records() {
   const [selectedRecordId, setSelectedRecordId] = useState<string | null>(null);
   const [showDetailModal, setShowDetailModal] = useState(false);
   const [selectedRecord, setSelectedRecord] = useState<any | null>(null);
+  const [certOpen, setCertOpen] = useState(false);
+  const [certLoading, setCertLoading] = useState(false);
+  const [certRecord, setCertRecord] = useState<any | null>(null);
+
+  const openCertificate = async (id: string) => {
+    setCertOpen(true);
+    setCertLoading(true);
+    setCertRecord(null);
+    try {
+      const full = await apiService.getBirth(id);
+      setCertRecord(full);
+    } catch {
+      alert("Impossible de charger l'acte numérique");
+      setCertOpen(false);
+    } finally {
+      setCertLoading(false);
+    }
+  };
 
   const fetchRecords = async () => {
     setLoading(true);
@@ -107,8 +127,10 @@ export default function Records() {
     }
     
     try {
-      await apiService.rejectBirth(selectedRecordId!, rejectMotif);
-      setNotification("❌ Acte rejeté avec succès.");
+      const res = await apiService.rejectBirth(selectedRecordId!, rejectMotif);
+      const u = res.agent?.user;
+      const who = u ? `${u.prenom || ''} ${u.nom || ''}`.trim() : "l'agent";
+      setNotification(`Dossier rejeté. Motif transmis à ${who} (dossiers / application mobile).`);
       setShowRejectModal(false);
       fetchRecords();
       setTimeout(() => setNotification(null), 5000);
@@ -202,6 +224,90 @@ export default function Records() {
                   Confirmer le rejet
                 </button>
               </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {certOpen && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            style={{
+              position: 'fixed',
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              background: 'rgba(0,0,0,0.55)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              zIndex: 1100,
+              padding: 16,
+              overflowY: 'auto',
+            }}
+            onClick={() => setCertOpen(false)}
+          >
+            <motion.div
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.95, opacity: 0 }}
+              onClick={(e) => e.stopPropagation()}
+              style={{
+                background: '#f8fafc',
+                borderRadius: 20,
+                padding: 20,
+                maxWidth: 780,
+                width: '100%',
+                maxHeight: '92vh',
+                overflowY: 'auto',
+              }}
+            >
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+                <h2 style={{ margin: 0, fontSize: 20, fontWeight: 800, color: '#1e293b' }}>Acte numérique</h2>
+                <div style={{ display: 'flex', gap: 8 }}>
+                  <button
+                    type="button"
+                    onClick={() => window.print()}
+                    style={{
+                      padding: '8px 12px',
+                      borderRadius: 8,
+                      border: '1px solid #e2e8f0',
+                      background: '#fff',
+                      cursor: 'pointer',
+                      fontWeight: 600,
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: 6,
+                    }}
+                  >
+                    <Printer size={16} /> Imprimer
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setCertOpen(false)}
+                    style={{
+                      padding: '8px 12px',
+                      borderRadius: 8,
+                      border: '1px solid #e2e8f0',
+                      background: '#fff',
+                      cursor: 'pointer',
+                    }}
+                  >
+                    <X size={20} />
+                  </button>
+                </div>
+              </div>
+              {certLoading && (
+                <div style={{ padding: 40, textAlign: 'center', color: '#64748b' }}>
+                  <Loader2 className="animate-spin" style={{ marginBottom: 8 }} />
+                  Chargement…
+                </div>
+              )}
+              {!certLoading && certRecord && <BirthCertificateView record={certRecord} />}
             </motion.div>
           </motion.div>
         )}
@@ -329,6 +435,33 @@ export default function Records() {
                 )}
               </div>
 
+              {selectedRecord.statut === 'VALIDE' && canViewAllRecords(userRole) && (
+                <div style={{ marginBottom: 20 }}>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setShowDetailModal(false);
+                      void openCertificate(selectedRecord.id);
+                    }}
+                    style={{
+                      padding: '12px 20px',
+                      borderRadius: 12,
+                      border: '1px solid #bbf7d0',
+                      background: '#ecfdf5',
+                      color: '#047857',
+                      fontWeight: 700,
+                      cursor: 'pointer',
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: 8,
+                    }}
+                  >
+                    <FileText size={18} />
+                    Voir l&apos;acte numérique (format officiel)
+                  </button>
+                </div>
+              )}
+
               {/* Blockchain */}
               {selectedRecord.statut === 'VALIDE' && selectedRecord.blockchainTx && canViewBlockchain(userRole) && (
                 <div style={{ marginBottom: 24 }}>
@@ -446,7 +579,7 @@ export default function Records() {
             cursor: 'pointer', fontWeight: 600, fontSize: 13, display: 'flex', alignItems: 'center', gap: 6
           }}
         >
-          <CheckCircle2 size={14} /> Validés
+          <CheckCircle2 size={14} /> Vérifiés
         </button>
         <button
           onClick={() => setStatusFilter('REJETE')}
@@ -555,6 +688,28 @@ export default function Records() {
                             Rejeter
                           </button>
                         </>
+                      )}
+                      {record.statut === 'VALIDE' && canViewAllRecords(userRole) && (
+                        <button
+                          type="button"
+                          onClick={() => void openCertificate(record.id)}
+                          style={{
+                            padding: '8px 12px',
+                            borderRadius: 8,
+                            border: '1px solid #bbf7d0',
+                            background: '#ecfdf5',
+                            color: '#047857',
+                            cursor: 'pointer',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: 6,
+                            fontWeight: 600,
+                            fontSize: 13,
+                          }}
+                        >
+                          <FileText size={16} />
+                          Acte
+                        </button>
                       )}
                       {record.statut === 'VALIDE' && canViewBlockchain(userRole) && (
                         <a 

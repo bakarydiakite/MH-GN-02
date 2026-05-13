@@ -7,6 +7,7 @@ export interface User {
   email: string;
   nom: string;
   prenom?: string;
+  telephone?: string | null;
   role: UserRole;
   centreId?: string;
   centreNom?: string;
@@ -36,16 +37,28 @@ export const ROLE_ROUTES: Record<UserRole, { dashboard: string; label: string; d
     description: 'Enregistrement mobile'
   },
   'FAMILLE': {
-    dashboard: '/mobile', // Redirection vers l'app mobile
+    dashboard: '/mobile',
     label: 'Famille',
-    description: 'Consultation familiale'
+    description: 'Application mobile uniquement',
   },
 };
+
+/** Rôles autorisés sur le portail web (administration & partenaires). */
+export const WEB_PORTAL_ROLES: UserRole[] = ['ADMINISTRATEUR', 'SUPERVISEUR', 'VERIFICATEUR'];
+
+export interface RegisterVerifierPayload {
+  email: string;
+  password: string;
+  nom: string;
+  prenom?: string;
+  telephone?: string;
+}
 
 interface AuthContextType {
   user: User | null;
   token: string | null;
   login: (email: string, password: string) => Promise<{ redirectPath: string }>;
+  registerVerifier: (payload: RegisterVerifierPayload) => Promise<{ redirectPath: string }>;
   logout: () => void;
   isAuthenticated: boolean;
   isLoading: boolean;
@@ -108,6 +121,41 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  /** Inscription web : compte institutionnel (rôle vérificateur côté serveur). */
+  const registerVerifier = async (
+    payload: RegisterVerifierPayload,
+  ): Promise<{ redirectPath: string }> => {
+    const response = await fetch(`${API_BASE_URL}/auth/register`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        ...payload,
+        role: 'VERIFICATEUR',
+      }),
+    });
+
+    if (!response.ok) {
+      let message = 'Inscription impossible';
+      try {
+        const err = await response.json();
+        message = Array.isArray(err.message) ? err.message.join(', ') : err.message || message;
+      } catch {
+        /* ignore */
+      }
+      throw new Error(message);
+    }
+
+    const data = await response.json();
+    localStorage.setItem('token', data.access_token);
+    localStorage.setItem('user', JSON.stringify(data.user));
+    setToken(data.access_token);
+    setUser(data.user);
+
+    const userRole = data.user.role as UserRole;
+    const redirectPath = ROLE_ROUTES[userRole]?.dashboard || '/admin';
+    return { redirectPath };
+  };
+
   const logout = () => {
     localStorage.removeItem('token');
     localStorage.removeItem('user');
@@ -130,6 +178,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       user,
       token,
       login,
+      registerVerifier,
       logout,
       isAuthenticated: !!token && !!user,
       isLoading,

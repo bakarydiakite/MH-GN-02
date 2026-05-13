@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -33,10 +33,45 @@ const Section = ({ title, icon, children }: any) => (
 );
 
 import { uploadService } from '../../services/upload.service';
+import * as Location from 'expo-location';
 
 export const ReviewConfirmationScreen = ({ navigation }: any) => {
   const { formData, resetForm } = useBirthForm();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [fieldGps, setFieldGps] = useState<{
+    lat: number;
+    lng: number;
+    accuracy: number | null;
+  } | null>(null);
+  const [gpsStatus, setGpsStatus] = useState<'loading' | 'ok' | 'denied' | 'unavailable'>('loading');
+
+  useEffect(() => {
+    let active = true;
+    (async () => {
+      try {
+        const { status } = await Location.requestForegroundPermissionsAsync();
+        if (status !== 'granted') {
+          if (active) setGpsStatus('denied');
+          return;
+        }
+        const pos = await Location.getCurrentPositionAsync({
+          accuracy: Location.Accuracy.Balanced,
+        });
+        if (!active) return;
+        setFieldGps({
+          lat: pos.coords.latitude,
+          lng: pos.coords.longitude,
+          accuracy: pos.coords.accuracy ?? null,
+        });
+        setGpsStatus('ok');
+      } catch {
+        if (active) setGpsStatus('unavailable');
+      }
+    })();
+    return () => {
+      active = false;
+    };
+  }, []);
 
   const handleConfirm = async () => {
     setIsSubmitting(true);
@@ -106,6 +141,13 @@ export const ReviewConfirmationScreen = ({ navigation }: any) => {
         cniMerePhoto: cniMereUrl,
         cniPerePhoto: cniPereUrl,
         acteMariagePhoto: acteMariageUrl,
+        ...(fieldGps
+          ? {
+              enregistrementLatitude: fieldGps.lat,
+              enregistrementLongitude: fieldGps.lng,
+              ...(fieldGps.accuracy != null ? { enregistrementPrecisionM: fieldGps.accuracy } : {}),
+            }
+          : {}),
       };
 
       const result = await birthService.registerBirth(finalData);
@@ -140,7 +182,18 @@ export const ReviewConfirmationScreen = ({ navigation }: any) => {
             text: 'Sauvegarder Brouillon', 
             onPress: async () => {
               try {
-                await birthService.saveDraft(formData as any);
+                await birthService.saveDraft({
+                  ...(formData as any),
+                  ...(fieldGps
+                    ? {
+                        enregistrementLatitude: fieldGps.lat,
+                        enregistrementLongitude: fieldGps.lng,
+                        ...(fieldGps.accuracy != null
+                          ? { enregistrementPrecisionM: fieldGps.accuracy }
+                          : {}),
+                      }
+                    : {}),
+                });
                 resetForm();
                 Alert.alert('Succès', 'Enregistrement sauvegardé localement.');
                 // Retourner à l'accueil Agent au lieu de Dashboard
@@ -209,6 +262,20 @@ export const ReviewConfirmationScreen = ({ navigation }: any) => {
           <InfoRow label="Nom" value={formData.nomDeclarant!} />
           <InfoRow label="Lien" value={formData.lienParenteDeclarant!} />
         </Section>
+
+        <View style={[styles.alertBox, { marginBottom: 12 }]}>
+          <Ionicons name="location-outline" size={20} color="#006948" />
+          <Text style={styles.alertText}>
+            {gpsStatus === 'loading' && 'Capture de la position en cours…'}
+            {gpsStatus === 'ok' &&
+              fieldGps &&
+              `Position enregistrée (${fieldGps.lat.toFixed(5)}, ${fieldGps.lng.toFixed(5)}) — visible par le superviseur sur la carte.`}
+            {gpsStatus === 'denied' &&
+              'Localisation refusée : le superviseur ne verra pas ce point sur la carte (l’acte peut tout de même être envoyé).'}
+            {gpsStatus === 'unavailable' &&
+              'Position indisponible pour le moment. Vous pouvez continuer ; réessayez en plein air si besoin.'}
+          </Text>
+        </View>
 
         <View style={styles.alertBox}>
           <Ionicons name="shield-checkmark" size={20} color="#006948" />

@@ -15,7 +15,10 @@ import Verification from "./portail_web_admin/pages/Verification";
 import Stats from "./portail_web_admin/pages/Stats";
 import Users from "./portail_web_admin/pages/UserManagement";
 import Structures from "./portail_web_admin/pages/Structures";
-import { useAuth } from "./contexts/AuthContext";
+import FieldMap from "./portail_web_admin/pages/FieldMap";
+import ProfileSettings from "./portail_web_admin/pages/ProfileSettings";
+import Register from "./portail_web_admin/pages/Register";
+import { useAuth, WEB_PORTAL_ROLES } from "./contexts/AuthContext";
 
 // Composant pour choisir le dashboard selon le rôle
 function DashboardRouter() {
@@ -70,16 +73,18 @@ export default function App() {
             </div>
           } />
 
-          {/* Login Page */}
+          {/* Login & inscription web (institutions = vérificateurs) */}
           <Route path="/login" element={<Login />} />
+          <Route path="/register" element={<Register />} />
 
-          {/* Admin Portal - Protected */}
+          {/* Portail web : admin, superviseur, vérificateur uniquement */}
           <Route path="/admin" element={
-            <ProtectedRoute>
+            <ProtectedRoute allowedRoles={WEB_PORTAL_ROLES}>
               <Layout />
             </ProtectedRoute>
           }>
             <Route index element={<DashboardRouter />} />
+            <Route path="profile" element={<ProfileSettings />} />
             <Route path="records" element={<Records />} />
             <Route path="verification" element={<Verification />} />
             <Route path="stats" element={
@@ -95,6 +100,11 @@ export default function App() {
             <Route path="structures" element={
               <ProtectedRoute allowedRoles={['ADMINISTRATEUR']}>
                 <Structures />
+              </ProtectedRoute>
+            } />
+            <Route path="field-map" element={
+              <ProtectedRoute allowedRoles={['ADMINISTRATEUR', 'SUPERVISEUR']}>
+                <FieldMap />
               </ProtectedRoute>
             } />
           </Route>

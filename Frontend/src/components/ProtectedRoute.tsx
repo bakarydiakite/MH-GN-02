@@ -33,6 +33,7 @@ export default function ProtectedRoute({ children, allowedRoles }: ProtectedRout
   }
 
   if (allowedRoles && !hasRole(allowedRoles)) {
+    const mobileOnly = user?.role === 'AGENT' || user?.role === 'FAMILLE';
     return (
       <div style={{
         minHeight: '100vh',
@@ -47,7 +48,7 @@ export default function ProtectedRoute({ children, allowedRoles }: ProtectedRout
           borderRadius: 16,
           padding: 40,
           textAlign: 'center',
-          maxWidth: 400,
+          maxWidth: 440,
           boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
         }}>
           <div style={{
@@ -65,10 +66,20 @@ export default function ProtectedRoute({ children, allowedRoles }: ProtectedRout
           <h2 style={{ fontSize: 20, fontWeight: 700, color: '#1E293B', marginBottom: 8 }}>
             Accès non autorisé
           </h2>
-          <p style={{ color: '#64748B', marginBottom: 24 }}>
-            Vous n'avez pas les permissions nécessaires pour accéder à cette page.
-            <br />
-            <strong>Rôle actuel :</strong> {user?.role}
+          <p style={{ color: '#64748B', marginBottom: 24, lineHeight: 1.5 }}>
+            {mobileOnly ? (
+              <>
+                Les comptes <strong>agent</strong> et <strong>famille</strong> utilisent uniquement l’application mobile, pas ce site web.
+                <br />
+                <span style={{ fontSize: 13 }}>Rôle actuel : {user?.role}</span>
+              </>
+            ) : (
+              <>
+                Vous n&apos;avez pas les permissions nécessaires pour accéder à cette page.
+                <br />
+                <strong>Rôle actuel :</strong> {user?.role}
+              </>
+            )}
           </p>
           <button
             onClick={() => window.history.back()}

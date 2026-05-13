@@ -10,18 +10,23 @@ import {
   History, 
   Settings, 
   Database,
-  User
+  User,
+  MapPin
 } from 'lucide-react';
 import { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 
-// Menus par rôle
+// Menus par rôle (Couverture terrain : admin + superviseur uniquement)
 const getMenuByRole = (role: string) => {
   const baseMenu = [
     { icon: LayoutDashboard, label: 'Dashboard', path: '/admin' },
     { icon: FileText, label: 'Dossiers', path: '/admin/records' },
     { icon: ShieldCheck, label: 'Vérification', path: '/admin/verification' },
+  ];
+
+  const supervisionMapMenu = [
+    { icon: MapPin, label: 'Couverture terrain', path: '/admin/field-map' },
   ];
 
   const adminOnlyMenu = [
@@ -33,9 +38,12 @@ const getMenuByRole = (role: string) => {
   ];
 
   if (role === 'ADMINISTRATEUR') {
-    return [...baseMenu, ...adminOnlyMenu];
+    return [...baseMenu, ...supervisionMapMenu, ...adminOnlyMenu];
   }
-  
+  if (role === 'SUPERVISEUR') {
+    return [...baseMenu, ...supervisionMapMenu];
+  }
+
   return baseMenu;
 };
 

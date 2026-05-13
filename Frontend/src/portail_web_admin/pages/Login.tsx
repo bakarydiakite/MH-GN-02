@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { Lock, Mail, Eye, EyeOff, Loader2, AlertCircle, ArrowRight, CheckCircle2 } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 
@@ -13,7 +13,7 @@ export default function Login() {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   
-  const { login } = useAuth();
+  const { login, logout } = useAuth();
   const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -24,8 +24,10 @@ export default function Login() {
     try {
       const { redirectPath } = await login(email, password);
       if (redirectPath === '/mobile') {
-        setError('ℹ️ Les agents et familles doivent utiliser l\'application mobile.');
-        setLoading(false);
+        logout();
+        setError(
+          "Ce portail web est réservé aux administrateurs, superviseurs et partenaires (vérificateurs). Les agents et les familles doivent utiliser l'application mobile.",
+        );
         return;
       }
       navigate(redirectPath);
@@ -39,6 +41,7 @@ export default function Login() {
   const demoAccounts = [
     { email: 'admin@naissancechain.gn', role: 'Admin', password: 'password123' },
     { email: 'superviseur@naissancechain.gn', role: 'Superviseur', password: 'password123' },
+    { email: 'verificateur@naissancechain.gn', role: 'Vérificateur', password: 'password123' },
   ];
 
   return (
@@ -203,8 +206,10 @@ export default function Login() {
 
           <div className="mt-10 text-center">
             <p className="text-slate-500 font-medium">
-              Vous n&apos;avez pas de compte ?{' '}
-              <button className="text-emerald-600 font-black hover:underline underline-offset-4">Inscrivez-vous</button>
+              Institution (école, hôpital, partenaire) ?{' '}
+              <Link to="/register" className="text-emerald-600 font-black hover:underline underline-offset-4">
+                Créer un compte vérificateur
+              </Link>
             </p>
           </div>
 
