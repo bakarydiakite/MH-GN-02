@@ -33,3 +33,6 @@ export default tseslint.config(
     },
   },
 );
+
+
+// eslint configurationn 
