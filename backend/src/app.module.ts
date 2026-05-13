@@ -8,6 +8,8 @@ import { BirthsModule } from './modules/births/births.module';
 import { BlockchainModule } from './modules/blockchain/blockchain.module';
 import { CertificatesModule } from './modules/certificates/certificates.module';
 import { StatsModule } from './modules/stats/stats.module';
+import { UsersModule } from './modules/users/users.module';
+import { UploadModule } from './modules/upload/upload.module';
 
 @Module({
   imports: [
@@ -20,6 +22,8 @@ import { StatsModule } from './modules/stats/stats.module';
     BlockchainModule,
     CertificatesModule,
     StatsModule,
+    UsersModule,
+    UploadModule,
   ],
   controllers: [AppController],
   providers: [AppService],

@@ -37,6 +37,7 @@ async function bootstrap() {
 
   const port = process.env.PORT || 3000;
   await app.listen(port, '0.0.0.0');
-  console.log(`🚀 Serveur NaissanceChain démarré sur : http://192.168.1.127:${port}`);
+  const publicUrl = process.env.PUBLIC_API_URL || `http://localhost:${port}`;
+  console.log(`🚀 Serveur NaissanceChain — API : ${publicUrl} (écoute 0.0.0.0:${port})`);
 }
 bootstrap();

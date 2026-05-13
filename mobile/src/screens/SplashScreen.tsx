@@ -10,6 +10,7 @@ import {
 import { MaterialIcons } from '@expo/vector-icons';
 import { Colors } from '../theme/colors';
 import { authService } from '../services/auth.service';
+import { API_BASE_URL } from '../config/api.config';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const { width, height } = Dimensions.get('window');
@@ -37,13 +38,31 @@ export const SplashScreen = ({ navigation }: any) => {
     const checkStatus = async () => {
       try {
         // Attendre au moins 2.5 secondes pour l'effet visuel
-        const [user, onboardingDone] = await Promise.all([
+        const [user, token, onboardingDone] = await Promise.all([
           authService.getUser(),
+          authService.getToken(),
           AsyncStorage.getItem('onboarding_done'),
           new Promise(resolve => setTimeout(resolve, 2500))
         ]);
 
-        if (user) {
+        if (user && token) {
+          // Vérifier la validité du token avec un appel API
+          try {
+            const response = await fetch(`${API_BASE_URL}/auth/verify`, {
+              headers: { 'Authorization': `Bearer ${token}` }
+            });
+            
+            if (!response.ok) {
+              // Token invalide ou expiré -> déconnecter et rediriger vers login
+              await authService.logout();
+              navigation.replace('Login');
+              return;
+            }
+          } catch (e) {
+            // Erreur réseau -> continuer quand même en mode offline
+            console.log('Network error during token verification, continuing...');
+          }
+          
           // Déjà connecté -> Dashboard selon le rôle
           if (user.role === 'AGENT' || user.role === 'ADMINISTRATEUR' || user.role === 'SUPERVISEUR') {
             navigation.replace('MainAgent');

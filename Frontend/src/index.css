@@ -35,3 +35,9 @@ body {
 *::-webkit-scrollbar {
   display: none; /* Chrome, Safari and Opera */
 }
+
+/* Leaflet divIcon: éviter le fond blanc par défaut */
+.leaflet-container .naissancechain-leaflet-pin {
+  background: transparent !important;
+  border: none !important;
+}

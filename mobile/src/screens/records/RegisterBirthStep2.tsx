@@ -65,10 +65,10 @@ export const RegisterBirthStep2 = ({ navigation }: any) => {
 
   return (
     <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="light-content" />
+      <StatusBar barStyle="dark-content" />
       <View style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
-          <Ionicons name="arrow-back" size={24} color="#fff" />
+          <Ionicons name="arrow-back" size={24} color={Colors.primary} />
         </TouchableOpacity>
         <View style={styles.headerInfo}>
           <Text style={styles.stepCount}>Étape 2 sur 6</Text>
@@ -178,30 +178,35 @@ export const RegisterBirthStep2 = ({ navigation }: any) => {
 };
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#F8F9FA' },
+  container: { flex: 1, backgroundColor: '#F8FAF9' },
   header: { 
-    backgroundColor: '#006948', 
+    backgroundColor: '#fff', 
     paddingHorizontal: 20, 
     paddingVertical: 25, 
     flexDirection: 'row', 
     alignItems: 'center',
     borderBottomLeftRadius: 30,
     borderBottomRightRadius: 30,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.05,
+    shadowRadius: 10,
+    elevation: 2,
   },
-  backBtn: { width: 40, height: 40, borderRadius: 12, backgroundColor: 'rgba(255,255,255,0.2)', justifyContent: 'center', alignItems: 'center' },
+  backBtn: { width: 44, height: 44, borderRadius: 12, backgroundColor: Colors.primary + '10', justifyContent: 'center', alignItems: 'center' },
   headerInfo: { flex: 1, marginLeft: 15 },
-  stepCount: { fontSize: 12, color: 'rgba(255,255,255,0.6)', fontWeight: '600', textTransform: 'uppercase' },
-  headerTitle: { fontSize: 18, color: '#fff', fontWeight: '800' },
-  progressCircle: { width: 44, height: 44, borderRadius: 22, borderWidth: 2, borderColor: '#80f9c2', justifyContent: 'center', alignItems: 'center' },
-  progressText: { color: '#80f9c2', fontSize: 12, fontWeight: '800' },
-  scrollContent: { padding: 20 },
-  section: { backgroundColor: '#fff', borderRadius: 25, padding: 20, marginBottom: 20, elevation: 2, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.05, shadowRadius: 10 },
+  stepCount: { fontSize: 10, color: Colors.primary, fontWeight: '800', textTransform: 'uppercase', letterSpacing: 1.5, opacity: 0.6 },
+  headerTitle: { fontSize: 20, color: Colors.onSurface, fontWeight: '900', letterSpacing: -0.5 },
+  progressCircle: { width: 44, height: 44, borderRadius: 22, borderWidth: 2, borderColor: Colors.primary + '20', justifyContent: 'center', alignItems: 'center' },
+  progressText: { color: Colors.primary, fontSize: 12, fontWeight: '800' },
+  scrollContent: { padding: 10 },
+  section: { backgroundColor: '#fff', borderRadius: 25, padding: 16, marginBottom: 20, elevation: 2, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.05, shadowRadius: 10 },
   sectionTitle: { fontSize: 16, fontWeight: '800', color: '#1a1a1a', marginBottom: 20 },
   field: { marginBottom: 15 },
   fieldLabel: { fontSize: 12, fontWeight: '700', color: '#666', marginBottom: 8, marginLeft: 4 },
-  input: { backgroundColor: '#F1F3F5', borderRadius: 12, paddingHorizontal: 15, paddingVertical: 12, fontSize: 15, color: '#1a1a1a' },
+  input: { backgroundColor: '#F1F3F5', borderRadius: 12, paddingHorizontal: 15, height: 64, fontSize: 16, color: '#1a1a1a' },
   row: { flexDirection: 'row', gap: 15 },
-  nextBtn: { backgroundColor: '#006948', borderRadius: 16, height: 56, flexDirection: 'row', justifyContent: 'center', alignItems: 'center', gap: 10, marginTop: 10, elevation: 4, shadowColor: '#006948', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 8 },
+  nextBtn: { backgroundColor: '#006948', borderRadius: 16, height: 64, flexDirection: 'row', justifyContent: 'center', alignItems: 'center', gap: 10, marginTop: 10, elevation: 4, shadowColor: '#006948', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 8 },
   nextBtnDisabled: { backgroundColor: '#ADB5BD', elevation: 0, shadowOpacity: 0 },
   nextBtnText: { color: '#fff', fontSize: 16, fontWeight: '800' },
 });

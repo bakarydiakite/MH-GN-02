@@ -44,14 +44,13 @@ export class AuthService {
         });
       }
 
-      return this.generateToken(user);
+      return await this.generateToken(user);
     } catch (error) {
       throw new UnauthorizedException('Google authentication failed');
     }
   }
 
   async register(dto: RegisterDto) {
-    // ... existing register code ...
     const existingUser = await this.prisma.user.findUnique({
       where: { email: dto.email },
     });
@@ -60,17 +59,18 @@ export class AuthService {
       throw new ConflictException('Email already exists');
     }
 
-    // Si c'est une famille et qu'aucun mot de passe n'est fourni, on met un par défaut pour la démo
-    const finalPassword = dto.password || (dto.role === 'FAMILLE' ? 'password123' : null);
-    
-    if (!finalPassword) {
-      throw new BadRequestException('Le mot de passe est obligatoire pour les agents.');
+    if (!dto.password || dto.password.length < 6) {
+      throw new BadRequestException('Mot de passe obligatoire (au moins 6 caractères).');
     }
 
-    const hashedPassword = await bcrypt.hash(finalPassword, 10);
+    if (dto.role && dto.role.toUpperCase() !== 'VERIFICATEUR') {
+      throw new BadRequestException(
+        'Inscription ouverte uniquement pour le profil « vérificateur » (écoles, hôpitaux, partenaires). Les agents et familles : application mobile. Administrateurs / superviseurs : création par l’administration.',
+      );
+    }
 
-    // Convert role to uppercase to match Prisma enum
-    const role = (dto.role?.toUpperCase() || 'AGENT') as UserRole;
+    const hashedPassword = await bcrypt.hash(dto.password, 10);
+    const role = UserRole.VERIFICATEUR;
 
     const user = await this.prisma.user.create({
       data: {
@@ -83,29 +83,7 @@ export class AuthService {
       },
     });
 
-    // If role is AGENT, create an entry in the agent table too
-    if (user.role === UserRole.AGENT) {
-      // Vérifier si le centre existe réellement avant de le lier
-      let validCenterId = undefined;
-      if (dto.centerId) {
-        const center = await this.prisma.center.findUnique({ 
-          where: { id: dto.centerId } 
-        });
-        if (center) validCenterId = dto.centerId;
-      }
-
-      await this.prisma.agent.create({
-        data: {
-          utilisateurId: user.id,
-          matricule: dto.matricule,
-          fonction: dto.fonction,
-          centerId: validCenterId,
-          actif: true,
-        },
-      });
-    }
-
-    return this.generateToken(user);
+    return await this.generateToken(user);
   }
 
   async registerFirstAdmin(dto: AdminRegisterDto) {
@@ -216,7 +194,7 @@ export class AuthService {
 
     // LOGIQUE SPÉCIFIQUE DÉMO : Pas de mot de passe requis pour les FAMILLES
     if (user.role === 'FAMILLE') {
-      return this.generateToken(user);
+      return await this.generateToken(user);
     }
 
     // Pour les AGENTS, le mot de passe reste obligatoire
@@ -226,9 +204,10 @@ export class AuthService {
       throw new UnauthorizedException('Identifiants invalides');
     }
 
-    return this.generateToken(user);
+    return await this.generateToken(user);
   }
 
+<<<<<<< HEAD
   async adminLogin(dto: LoginDto) {
     const user = await this.prisma.user.findFirst({
       where: {
@@ -289,11 +268,30 @@ export class AuthService {
   }
 
   private generateToken(user: any) {
+=======
+  private async generateToken(user: any) {
+>>>>>>> 147c53fee3b35f3abc4900c392072781bff9eb1e
     const payload = { 
       sub: user.id, 
       email: user.email, 
       role: user.role 
     };
+
+    // Récupérer le centre si l'utilisateur est un agent ou superviseur
+    let centreId = null;
+    let centreNom = null;
+    
+    if (['AGENT', 'SUPERVISEUR'].includes(user.role)) {
+      const agent = await this.prisma.agent.findUnique({
+        where: { utilisateurId: user.id },
+        include: { center: true }
+      });
+      
+      if (agent?.center) {
+        centreId = agent.center.id;
+        centreNom = agent.center.nom;
+      }
+    }
 
     return {
       access_token: this.jwtService.sign(payload),
@@ -302,7 +300,10 @@ export class AuthService {
         email: user.email,
         nom: user.nom,
         prenom: user.prenom,
+        telephone: user.telephone ?? null,
         role: user.role,
+        centreId,
+        centreNom,
       },
     };
   }

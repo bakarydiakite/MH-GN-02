@@ -5,26 +5,29 @@ import {
   StyleSheet,
   ScrollView,
   TouchableOpacity,
+  Image as RNImage,
+  Dimensions,
+  Platform,
+  Animated,
 } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { MaterialIcons } from '@expo/vector-icons';
+import { MaterialIcons, Ionicons, Feather, FontAwesome5 } from '@expo/vector-icons';
 import { Colors } from '../../theme/colors';
 import { useNavigation } from '@react-navigation/native';
 import { authService } from '../../services/auth.service';
 import { birthService } from '../../services/birth.service';
-import { Image } from 'react-native';
 
-/**
- * FamilleAccueilScreen
- * Portail famille premium - inspiré de la maquette portail_famille_accueil
- */
+const { width } = Dimensions.get('window');
+const CARD_WIDTH = (width - 48) / 2;
+
 export const FamilleAccueilScreen = () => {
   const navigation = useNavigation<any>();
   const [user, setUser] = React.useState<any>(null);
-  const [stats, setStats] = React.useState({ total: 0 });
+  const [stats, setStats] = React.useState<any>({ totalBirths: 0, validated: 0 });
   const [children, setChildren] = React.useState<any[]>([]);
   const [isLoading, setIsLoading] = React.useState(true);
+  const scrollY = React.useRef(new Animated.Value(0)).current;
 
   React.useEffect(() => {
     loadData();
@@ -48,578 +51,501 @@ export const FamilleAccueilScreen = () => {
     }
   };
 
+  const headerOpacity = scrollY.interpolate({
+    inputRange: [0, 60],
+    outputRange: [0, 1],
+    extrapolate: 'clamp',
+  });
+
+  const renderChildCard = (record: any, index: number) => {
+    const isValide = record.statut === 'VALIDE';
+    const statusLabel = isValide ? 'Protégé' : 'Traitement';
+    const statusColor = isValide ? '#006948' : '#FFAB40';
+
+    return (
+      <TouchableOpacity 
+        key={record.id} 
+        activeOpacity={0.9}
+        style={styles.memberCard}
+        onPress={() => navigation.navigate('DigitalProof', { recordId: record.id })}
+      >
+        <View style={styles.memberAvatarWrapper}>
+          <View style={[styles.avatarRing, { borderColor: statusColor + '40' }]} />
+          <RNImage 
+            source={{ uri: record.attachments?.[0]?.urlFichier || 'https://i.pravatar.cc/150?u=' + record.id }} 
+            style={styles.memberAvatar} 
+          />
+          <View style={[styles.statusDot, { backgroundColor: statusColor }]} />
+        </View>
+        
+        <Text style={styles.memberName} numberOfLines={1}>
+          {record.enfant?.prenoms}
+        </Text>
+        <View style={styles.statusBadge}>
+          <Text style={[styles.statusText, { color: statusColor }]}>{statusLabel}</Text>
+        </View>
+
+        <View style={styles.uxProgressBar}>
+          <View style={[styles.uxProgressFill, { width: isValide ? '100%' : '50%', backgroundColor: statusColor }]} />
+        </View>
+      </TouchableOpacity>
+    );
+  };
+
   return (
-    <SafeAreaView style={styles.container}>
-      <StatusBar style="dark" backgroundColor={Colors.background} />
+    <View style={styles.root}>
+      <StatusBar style="dark" />
+      
+      {/* Dynamic Header */}
+      <Animated.View style={[styles.floatingHeader, { opacity: headerOpacity }]}>
+        <SafeAreaView edges={['top']}>
+          <View style={styles.headerInner}>
+            <Text style={styles.headerTitle}>Famille {user?.nom}</Text>
+          </View>
+        </SafeAreaView>
+      </Animated.View>
 
-      {/* Top Bar */}
-      <View style={styles.topBar}>
-        <Text style={styles.brandTitle}>NaissanceChain</Text>
-        <TouchableOpacity style={styles.iconBtn}>
-          <MaterialIcons name="notifications" size={24} color={Colors.primary} />
-          <View style={styles.notifDot} />
-        </TouchableOpacity>
-      </View>
+      <SafeAreaView style={styles.container} edges={['top']}>
+        <Animated.ScrollView 
+          onScroll={Animated.event(
+            [{ nativeEvent: { contentOffset: { y: scrollY } } }],
+            { useNativeDriver: true }
+          )}
+          scrollEventThrottle={16}
+          contentContainerStyle={styles.scrollContent} 
+          showsVerticalScrollIndicator={false}
+        >
+          
+          {/* Top Nav Action */}
+          <View style={styles.topActions}>
+            <TouchableOpacity style={styles.roundBtn}>
+              <Feather name="grid" size={20} color={Colors.onSurface} />
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.profileBtn}>
+              <RNImage 
+                source={{ uri: 'https://i.pravatar.cc/100?u=' + user?.id }} 
+                style={styles.miniAvatar} 
+              />
+            </TouchableOpacity>
+          </View>
 
-      <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
-
-        {/* Hero Greeting Section */}
-        <View style={styles.heroSection}>
-          {/* Decorative blob */}
-          <View style={styles.heroBlob} />
-
-          <View style={styles.heroContent}>
+          {/* Futuristic Greeting */}
+          <View style={styles.hero}>
             <Text style={styles.heroGreeting}>Bonjour,</Text>
-            <Text style={styles.heroName}>Famille {user?.nom || 'Diallo'}</Text>
-            <Text style={styles.heroSub}>
-              Bienvenue sur votre portail sécurisé. La protection de l&apos;identité de votre famille commence ici.
-            </Text>
-
-            {/* Stats Row */}
-            <View style={styles.statsRow}>
-              <View style={styles.statCard}>
-                <Text style={styles.statNumber}>
-                  {String(stats?.total || 0).padStart(2, '0')}
-                </Text>
-                <Text style={styles.statLabel}>ENFANTS ENREGISTRÉS</Text>
+            <Text style={styles.heroName}>{user?.nom || 'Famille'}</Text>
+            <View style={styles.heroStats}>
+              <View style={styles.heroStatItem}>
+                <Text style={styles.heroStatVal}>{stats?.totalBirths || 0}</Text>
+                <Text style={styles.heroStatLab}>Membres</Text>
               </View>
-              <View style={styles.statCard}>
-                <MaterialIcons name="verified-user" size={28} color="rgba(255,255,255,0.9)" />
-                <Text style={styles.statLabel}>IDENTITÉ SÉCURISÉE</Text>
+              <View style={styles.heroStatDivider} />
+              <View style={styles.heroStatItem}>
+                <Text style={styles.heroStatVal}>{stats?.validated || 0}</Text>
+                <Text style={styles.heroStatLab}>Certifiés</Text>
               </View>
             </View>
           </View>
-        </View>
 
-        {/* Section: Mes Enfants */}
-        <View style={styles.sectionHeader}>
-          <Text style={styles.childrenSectionTitle}>Mes Enfants</Text>
-          <TouchableOpacity onPress={() => navigation.navigate('MesEnfants')}>
-            <Text style={styles.seeAll}>Voir tout</Text>
-          </TouchableOpacity>
-        </View>
-
-        {children.length > 0 ? (
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.childrenScroll}>
-            {children.map((record) => (
-              <TouchableOpacity 
-                key={record.id} 
-                style={styles.childCard}
-                onPress={() => navigation.navigate('DigitalProof', { recordId: record.id })}
-              >
-                <Image 
-                  source={{ uri: record.attachments?.[0]?.urlFichier || 'https://i.pravatar.cc/150?u=' + record.id }} 
-                  style={styles.childImage} 
-                />
-                <View style={styles.childCardContent}>
-                  <Text style={styles.childCardName} numberOfLines={1}>
-                    {record.enfant?.prenoms}
-                  </Text>
-                  <Text style={styles.childCardDate}>
-                    {new Date(record.enfant?.dateNaissance).toLocaleDateString('fr-FR')}
-                  </Text>
-                  <View style={styles.certifiedBadge}>
-                    <MaterialIcons name="verified" size={12} color="#fff" />
-                    <Text style={styles.certifiedText}>CERTIFIÉ</Text>
-                  </View>
-                </View>
-              </TouchableOpacity>
-            ))}
-          </ScrollView>
-        ) : !isLoading ? (
-          <View style={styles.emptyState}>
-            <MaterialIcons name="child-care" size={40} color="#ccc" />
-            <Text style={styles.emptyText}>Aucun enfant lié à votre compte</Text>
+          {/* Section: Ma Tribu (Grid) */}
+          <View style={styles.sectionHeader}>
+            <Text style={styles.sectionTitle}>Ma Tribu</Text>
+            <TouchableOpacity onPress={() => navigation.navigate('MesEnfants')}>
+              <Text style={styles.seeAll}>Tout voir</Text>
+            </TouchableOpacity>
           </View>
-        ) : null}
 
-        {/* Dynamic Welcome Guide for new users */}
-        {stats.total === 0 && !isLoading && (
-          <View style={styles.starterGuide}>
-            <View style={styles.starterHeader}>
-              <MaterialIcons name="auto-awesome" size={20} color="#006948" />
-              <Text style={styles.starterTitle}>Guide de démarrage rapide</Text>
-            </View>
+          <View style={styles.grid}>
+            {children.map(renderChildCard)}
             
-            <View style={styles.stepItem}>
-              <View style={styles.stepNumber}><Text style={styles.stepNumberText}>1</Text></View>
-              <View style={styles.stepText}>
-                <Text style={styles.stepTitle}>Liez votre premier enfant</Text>
-                <Text style={styles.stepDesc}>Utilisez le bouton "Lier un enfant" ci-dessous et scannez le QR Code sur son acte papier.</Text>
+            {/* Minimal Add Button */}
+            <TouchableOpacity 
+              style={styles.addMemberBtn}
+              onPress={() => navigation.navigate('LinkChild')}
+            >
+              <View style={styles.addIconBox}>
+                <Ionicons name="add-outline" size={28} color={Colors.primary} />
               </View>
-            </View>
+              <Text style={styles.addBtnText}>Nouveau membre</Text>
+            </TouchableOpacity>
+          </View>
 
-            <View style={styles.stepItem}>
-              <View style={styles.stepNumber}><Text style={styles.stepNumberText}>2</Text></View>
-              <View style={styles.stepText}>
-                <Text style={styles.stepTitle}>Vérifiez l&apos;authenticité</Text>
-                <Text style={styles.stepDesc}>Une fois lié, l&apos;acte apparaîtra dans "Mes Enfants" avec son certificat blockchain.</Text>
-              </View>
+          {/* Futuristic Control Center (Services) */}
+          <View style={styles.controlCenter}>
+            <Text style={styles.sectionTitle}>Centre de Contrôle</Text>
+            <View style={styles.serviceGrid}>
+              <ControlItem 
+                icon="file-text" 
+                label="Registres" 
+                sub="Mes actes"
+                onPress={() => navigation.navigate('MesEnfants')}
+                color="#E8F5E9"
+                iconColor="#2E7D32"
+              />
+              <ControlItem 
+                icon="shield" 
+                label="Sécurité" 
+                sub="Blockchain"
+                onPress={() => navigation.navigate('Vérifier')}
+                color="#E3F2FD"
+                iconColor="#1565C0"
+              />
+              <ControlItem 
+                icon="clock" 
+                label="Suivi" 
+                sub="Demandes"
+                onPress={() => navigation.navigate('SuiviDossier')}
+                color="#FFF3E0"
+                iconColor="#E65100"
+              />
+              <ControlItem 
+                icon="settings" 
+                label="Réglages" 
+                sub="Profil"
+                onPress={() => {}}
+                color="#F3E5F5"
+                iconColor="#7B1FA2"
+              />
             </View>
           </View>
-        )}
 
-        {/* Services Section */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Services administratifs</Text>
-          <Text style={styles.sectionSub}>Gérez vos documents officiels en toute simplicité.</Text>
-
-          {/* Service Cards */}
-          <TouchableOpacity
-            style={styles.serviceCard}
-            onPress={() => navigation.navigate('MesEnfants')}
-          >
-            <View style={styles.serviceIconBox}>
-              <MaterialIcons name="description" size={28} color={Colors.primary} />
-            </View>
-            <View style={styles.serviceText}>
-              <Text style={styles.serviceTitle}>Actes de naissance</Text>
-              <Text style={styles.serviceSub}>Consultez et téléchargez les actes numérisés de vos enfants.</Text>
-            </View>
-            <View style={styles.serviceArrow}>
-              <Text style={styles.serviceAcceder}>Accéder</Text>
-              <MaterialIcons name="arrow-forward" size={16} color={Colors.primary} />
-            </View>
-          </TouchableOpacity>
-
-          <TouchableOpacity style={styles.serviceCard}>
-            <View style={styles.serviceIconBox}>
-              <MaterialIcons name="menu-book" size={28} color={Colors.primary} />
-            </View>
-            <View style={styles.serviceText}>
-              <Text style={styles.serviceTitle}>Demande de livret</Text>
-              <Text style={styles.serviceSub}>Commandez un nouveau livret de famille ou une copie certifiée.</Text>
-            </View>
-            <View style={styles.serviceArrow}>
-              <Text style={styles.serviceAcceder}>Commander</Text>
-              <MaterialIcons name="arrow-forward" size={16} color={Colors.primary} />
-            </View>
-          </TouchableOpacity>
-
-          <TouchableOpacity style={styles.serviceCard}
-            onPress={() => navigation.navigate('SuiviDossier')}
-          >
-            <View style={styles.serviceIconBox}>
-              <MaterialIcons name="edit-note" size={28} color={Colors.primary} />
-            </View>
-            <View style={styles.serviceText}>
-              <Text style={styles.serviceTitle}>Suivi de dossier</Text>
-              <Text style={styles.serviceSub}>Signalez une erreur sur un document officiel pour rectification.</Text>
-            </View>
-            <View style={styles.serviceArrow}>
-              <Text style={styles.serviceAcceder}>Rectifier</Text>
-              <MaterialIcons name="arrow-forward" size={16} color={Colors.primary} />
-            </View>
-          </TouchableOpacity>
-
-          <TouchableOpacity 
-            style={[styles.serviceCard, { backgroundColor: '#e6f3ef', borderColor: Colors.primary, borderWidth: 1 }]}
-            onPress={() => navigation.navigate('LinkChild')}
-          >
-            <View style={[styles.serviceIconBox, { backgroundColor: Colors.primary }]}>
-              <MaterialIcons name="add-link" size={28} color="#fff" />
-            </View>
-            <View style={styles.serviceText}>
-              <Text style={[styles.serviceTitle, { color: Colors.primary }]}>Lier un enfant</Text>
-              <Text style={styles.serviceSub}>Ajoutez un enfant à votre compte via QR Code ou numéro de téléphone.</Text>
-            </View>
-            <View style={styles.serviceArrow}>
-              <Text style={styles.serviceAcceder}>Lier maintenant</Text>
-              <MaterialIcons name="qr-code-scanner" size={16} color={Colors.primary} />
-            </View>
-          </TouchableOpacity>
-        </View>
-
-        {/* Mission Statement Section */}
-        <View style={styles.missionSection}>
-          <View style={styles.missionBadge}>
-            <Text style={styles.missionBadgeText}>NOTRE ENGAGEMENT</Text>
+          {/* Futuristic Footer */}
+          <View style={styles.futuristicFooter}>
+            <View style={styles.footerLine} />
+            <Text style={styles.footerCopyright}>NAISSANCECHAIN GUINÉE v2.0</Text>
+            <Text style={styles.footerSlogan}>L&apos;identité est un droit, la sécurité est notre devoir.</Text>
           </View>
-          <Text style={styles.missionTitle}>
-            Une identité souveraine pour chaque citoyen.
-          </Text>
-          <Text style={styles.missionText}>
-            NaissanceChain utilise la technologie blockchain pour garantir l&apos;intégrité et la pérennité des archives d&apos;état civil. Nous construisons le socle numérique de la Guinée de demain.
-          </Text>
-          <TouchableOpacity style={styles.missionBtn}>
-            <Text style={styles.missionBtnText}>En savoir plus</Text>
-          </TouchableOpacity>
-        </View>
 
-        <View style={{ height: 40 }} />
-      </ScrollView>
-    </SafeAreaView>
+          <View style={{ height: 60 }} />
+        </Animated.ScrollView>
+      </SafeAreaView>
+
+      {/* Futuristic Floating Navigation Bar can be added here if needed */}
+    </View>
   );
 };
 
+const ControlItem = ({ icon, label, sub, onPress, color, iconColor }: any) => (
+  <TouchableOpacity 
+    style={[styles.controlItem, { backgroundColor: Colors.surfaceContainerLowest }]} 
+    onPress={onPress}
+  >
+    <View style={[styles.controlIconCircle, { backgroundColor: color }]}>
+      <Feather name={icon} size={20} color={iconColor} />
+    </View>
+    <View>
+      <Text style={styles.controlLabel}>{label}</Text>
+      <Text style={styles.controlSub}>{sub}</Text>
+    </View>
+  </TouchableOpacity>
+);
+
 const styles = StyleSheet.create({
+  root: {
+    flex: 1,
+    backgroundColor: '#F8FAF9', // Ultra clean off-white
+  },
   container: {
     flex: 1,
-    backgroundColor: Colors.background,
   },
-  topBar: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: 24,
-    paddingVertical: 14,
-    backgroundColor: Colors.background,
-  },
-  brandTitle: {
-    fontSize: 18,
-    fontWeight: '900',
-    color: Colors.onSurface,
-    letterSpacing: -0.5,
-  },
-  iconBtn: {
-    width: 44,
-    height: 44,
-    borderRadius: 14,
-    backgroundColor: Colors.surfaceContainerLowest,
-    justifyContent: 'center',
-    alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.06,
-    shadowRadius: 6,
-    elevation: 2,
-  },
-  notifDot: {
+  floatingHeader: {
     position: 'absolute',
-    top: 10,
-    right: 11,
-    width: 7,
-    height: 7,
-    borderRadius: 4,
-    backgroundColor: '#ef4444',
-    borderWidth: 1.5,
-    borderColor: Colors.surfaceContainerLowest,
+    top: 0,
+    left: 0,
+    right: 0,
+    backgroundColor: 'rgba(248, 250, 249, 0.95)',
+    zIndex: 100,
+    borderBottomWidth: 0.5,
+    borderBottomColor: '#E0E0E0',
   },
-  scrollContent: {
-    paddingBottom: 40,
-  },
-
-  // Hero
-  heroSection: {
-    marginHorizontal: 16,
-    marginBottom: 28,
-    borderRadius: 32,
-    overflow: 'hidden',
-    backgroundColor: Colors.primary,
-    minHeight: 220,
-  },
-  heroBlob: {
-    position: 'absolute',
-    top: -50,
-    right: -50,
-    width: 200,
-    height: 200,
-    borderRadius: 100,
-    backgroundColor: 'rgba(255,255,255,0.06)',
-  },
-  heroContent: {
-    padding: 28,
-  },
-  heroGreeting: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: 'rgba(255,255,255,0.6)',
-    textTransform: 'uppercase',
-    letterSpacing: 1.5,
-    marginBottom: 4,
-  },
-  heroName: {
-    fontSize: 32,
-    fontWeight: '900',
-    color: '#ffffff',
-    letterSpacing: -0.5,
-    marginBottom: 10,
-  },
-  heroSub: {
-    fontSize: 14,
-    color: 'rgba(255,255,255,0.8)',
-    lineHeight: 20,
-    marginBottom: 24,
-  },
-  statsRow: {
-    flexDirection: 'row',
-    gap: 12,
-  },
-  statCard: {
-    flex: 1,
-    backgroundColor: 'rgba(255,255,255,0.12)',
-    borderRadius: 20,
-    padding: 16,
-    gap: 6,
-  },
-  statNumber: {
-    fontSize: 36,
-    fontWeight: '900',
-    color: '#ffffff',
-    letterSpacing: -1,
-  },
-  statLabel: {
-    fontSize: 9,
-    fontWeight: '800',
-    color: 'rgba(255,255,255,0.7)',
-    letterSpacing: 1.2,
-  },
-
-  // Section
-  section: {
-    paddingHorizontal: 20,
-    marginBottom: 28,
-  },
-  sectionTitle: {
-    fontSize: 22,
-    fontWeight: '800',
-    color: Colors.onSurface,
-    letterSpacing: -0.3,
-    marginBottom: 4,
-  },
-  sectionSub: {
-    fontSize: 13,
-    color: Colors.onSurfaceVariant,
-    marginBottom: 20,
-  },
-
-  // Service Cards
-  serviceCard: {
-    backgroundColor: Colors.surfaceContainerLowest,
-    borderRadius: 24,
-    padding: 20,
-    marginBottom: 12,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.06,
-    shadowRadius: 14,
-    elevation: 2,
-    gap: 12,
-  },
-  serviceIconBox: {
-    width: 52,
-    height: 52,
-    borderRadius: 16,
-    backgroundColor: Colors.surfaceContainerLow,
+  headerInner: {
+    height: 50,
     justifyContent: 'center',
     alignItems: 'center',
   },
-  serviceText: {
-    flex: 1,
-  },
-  serviceTitle: {
+  headerTitle: {
     fontSize: 16,
     fontWeight: '800',
     color: Colors.onSurface,
-    marginBottom: 4,
   },
-  serviceSub: {
-    fontSize: 12,
-    color: Colors.onSurfaceVariant,
-    lineHeight: 17,
+  scrollContent: {
+    paddingHorizontal: 10,
+    paddingTop: 10,
+    paddingBottom: 40,
   },
-  serviceArrow: {
+  topActions: {
     flexDirection: 'row',
+    justifyContent: 'space-between',
     alignItems: 'center',
-    gap: 4,
-    marginTop: 8,
-  },
-  serviceAcceder: {
-    fontSize: 13,
-    fontWeight: '700',
-    color: Colors.primary,
-  },
-
-  // Mission
-  missionSection: {
-    marginHorizontal: 20,
-    backgroundColor: Colors.surfaceContainerLow,
-    borderRadius: 28,
-    padding: 28,
-    marginBottom: 12,
-  },
-  missionBadge: {
-    alignSelf: 'flex-start',
-    backgroundColor: '#78fbb6',
-    paddingHorizontal: 12,
-    paddingVertical: 5,
-    borderRadius: 20,
-    marginBottom: 14,
-  },
-  missionBadgeText: {
-    fontSize: 9,
-    fontWeight: '900',
-    color: '#002111',
-    letterSpacing: 1.5,
-  },
-  missionTitle: {
-    fontSize: 22,
-    fontWeight: '900',
-    color: Colors.onSurface,
-    letterSpacing: -0.3,
-    lineHeight: 28,
-    marginBottom: 12,
-  },
-  missionText: {
-    fontSize: 13,
-    color: Colors.onSurfaceVariant,
-    lineHeight: 20,
     marginBottom: 20,
   },
-  missionBtn: {
-    backgroundColor: Colors.primary,
-    paddingVertical: 14,
-    paddingHorizontal: 28,
-    borderRadius: 16,
-    alignSelf: 'flex-start',
-    shadowColor: Colors.primary,
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.25,
-    shadowRadius: 12,
-    elevation: 4,
-  },
-  missionBtnText: {
-    fontSize: 14,
-    fontWeight: '800',
-    color: '#ffffff',
-  },
-  // Starter Guide styles
-  starterGuide: {
-    marginHorizontal: 20,
-    backgroundColor: '#f5fbf4',
-    borderRadius: 24,
-    padding: 20,
-    marginBottom: 28,
-    borderWidth: 1,
-    borderColor: '#e6f3ef',
-  },
-  starterHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    marginBottom: 16,
-  },
-  starterTitle: {
-    fontSize: 15,
-    fontWeight: '800',
-    color: '#006948',
-  },
-  stepItem: {
-    flexDirection: 'row',
-    gap: 14,
-    marginBottom: 16,
-  },
-  stepNumber: {
-    width: 24,
-    height: 24,
-    borderRadius: 12,
-    backgroundColor: '#006948',
+  roundBtn: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: '#fff',
     justifyContent: 'center',
     alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.05,
+    shadowRadius: 10,
+    elevation: 2,
   },
-  stepNumberText: {
-    color: '#fff',
+  profileBtn: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    borderWidth: 2,
+    borderColor: '#fff',
+    overflow: 'hidden',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 10,
+    elevation: 3,
+  },
+  miniAvatar: {
+    width: '100%',
+    height: '100%',
+  },
+  hero: {
+    marginBottom: 35,
+  },
+  heroGreeting: {
+    fontSize: 20,
+    fontWeight: '500',
+    color: Colors.onSurface,
+    opacity: 0.6,
+    letterSpacing: -0.5,
+  },
+  heroName: {
+    fontSize: 40,
+    fontWeight: '900',
+    color: Colors.onSurface,
+    letterSpacing: -1.5,
+    marginTop: -5,
+  },
+  heroStats: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 20,
+    backgroundColor: '#fff',
+    paddingVertical: 15,
+    paddingHorizontal: 20,
+    borderRadius: 24,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.04,
+    shadowRadius: 20,
+    elevation: 4,
+  },
+  heroStatItem: {
+    flex: 1,
+    alignItems: 'center',
+  },
+  heroStatVal: {
+    fontSize: 28,
+    fontWeight: '900',
+    color: Colors.primary,
+  },
+  heroStatLab: {
     fontSize: 12,
     fontWeight: '800',
-  },
-  stepText: {
-    flex: 1,
-  },
-  stepTitle: {
-    fontSize: 14,
-    fontWeight: '700',
-    color: Colors.onSurface,
-    marginBottom: 2,
-  },
-  stepDesc: {
-    fontSize: 12,
     color: Colors.onSurfaceVariant,
-    lineHeight: 18,
+    opacity: 0.6,
+    textTransform: 'uppercase',
+  },
+  heroStatDivider: {
+    width: 1,
+    height: 30,
+    backgroundColor: '#F0F0F0',
   },
   sectionHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'center',
-    marginTop: 25,
-    marginBottom: 15,
-    paddingHorizontal: 20,
+    alignItems: 'flex-end',
+    marginBottom: 20,
   },
-  childrenSectionTitle: {
-    fontSize: 18,
+  sectionTitle: {
+    fontSize: 22,
+    fontWeight: '900',
+    color: Colors.onSurface,
+    letterSpacing: -0.5,
+  },
+  seeAll: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: Colors.primary,
+    opacity: 0.8,
+  },
+  grid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-between',
+    gap: 16,
+  },
+  memberCard: {
+    width: CARD_WIDTH,
+    backgroundColor: '#fff',
+    borderRadius: 32,
+    padding: 24,
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 15 },
+    shadowOpacity: 0.06,
+    shadowRadius: 25,
+    elevation: 5,
+  },
+  memberAvatarWrapper: {
+    position: 'relative',
+    marginBottom: 16,
+  },
+  avatarRing: {
+    position: 'absolute',
+    top: -6,
+    left: -6,
+    right: -6,
+    bottom: -6,
+    borderRadius: 45,
+    borderWidth: 1.5,
+  },
+  memberAvatar: {
+    width: 76,
+    height: 76,
+    borderRadius: 38,
+    backgroundColor: '#F0F0F0',
+  },
+  statusDot: {
+    position: 'absolute',
+    bottom: 2,
+    right: 2,
+    width: 16,
+    height: 16,
+    borderRadius: 8,
+    borderWidth: 3,
+    borderColor: '#fff',
+  },
+  memberName: {
+    fontSize: 17,
+    fontWeight: '800',
+    color: Colors.onSurface,
+    marginBottom: 4,
+  },
+  statusBadge: {
+    marginBottom: 16,
+  },
+  statusText: {
+    fontSize: 11,
+    fontWeight: '800',
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+    opacity: 0.7,
+  },
+  uxProgressBar: {
+    width: '100%',
+    height: 4,
+    backgroundColor: '#F5F5F5',
+    borderRadius: 2,
+    overflow: 'hidden',
+  },
+  uxProgressFill: {
+    height: '100%',
+    borderRadius: 2,
+  },
+  addMemberBtn: {
+    width: CARD_WIDTH,
+    height: 200,
+    borderRadius: 32,
+    borderWidth: 1.5,
+    borderColor: '#E0E0E0',
+    borderStyle: 'dashed',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+    backgroundColor: 'rgba(255,255,255,0.4)',
+  },
+  addIconBox: {
+    width: 54,
+    height: 54,
+    borderRadius: 27,
+    backgroundColor: '#fff',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 14,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.05,
+    shadowRadius: 10,
+    elevation: 2,
+  },
+  addBtnText: {
+    fontSize: 13,
+    fontWeight: '800',
+    color: Colors.onSurface,
+    opacity: 0.6,
+  },
+  controlCenter: {
+    marginTop: 45,
+  },
+  serviceGrid: {
+    marginTop: 20,
+    gap: 12,
+  },
+  controlItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 16,
+    borderRadius: 24,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.03,
+    shadowRadius: 10,
+    elevation: 1,
+  },
+  controlIconCircle: {
+    width: 44,
+    height: 44,
+    borderRadius: 14,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 16,
+  },
+  controlLabel: {
+    fontSize: 15,
     fontWeight: '800',
     color: Colors.onSurface,
   },
-  seeAll: {
-    color: Colors.primary,
-    fontWeight: '700',
-    fontSize: 14,
+  controlSub: {
+    fontSize: 12,
+    color: Colors.onSurfaceVariant,
+    opacity: 0.6,
   },
-  childrenScroll: {
-    paddingLeft: 20,
-    marginBottom: 20,
+  futuristicFooter: {
+    marginTop: 60,
+    alignItems: 'center',
+    paddingHorizontal: 30,
   },
-  childCard: {
-    width: 160,
-    backgroundColor: '#fff',
-    borderRadius: 24,
-    marginRight: 15,
-    overflow: 'hidden',
-    elevation: 4,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    borderWidth: 1,
-    borderColor: '#f0f0f0',
+  footerLine: {
+    width: 40,
+    height: 3,
+    backgroundColor: Colors.primary,
+    borderRadius: 2,
+    marginBottom: 15,
+    opacity: 0.2,
   },
-  childImage: {
-    width: '100%',
-    height: 110,
+  footerCopyright: {
+    fontSize: 10,
+    fontWeight: '900',
+    color: Colors.onSurface,
+    letterSpacing: 2,
+    opacity: 0.4,
   },
-  childCardContent: {
-    padding: 12,
-  },
-  childCardName: {
-    fontSize: 15,
-    fontWeight: '800',
-    color: '#1a1a1a',
-  },
-  childCardDate: {
+  footerSlogan: {
     fontSize: 11,
-    color: '#666',
-    marginTop: 2,
-  },
-  certifiedBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#006948',
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-    borderRadius: 10,
-    marginTop: 8,
-    alignSelf: 'flex-start',
-    gap: 4,
-  },
-  certifiedText: {
-    fontSize: 9,
-    fontWeight: '800',
-    color: '#fff',
-  },
-  emptyState: {
-    marginHorizontal: 20,
-    backgroundColor: '#fff',
-    borderRadius: 24,
-    padding: 30,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderWidth: 1,
-    borderColor: '#eee',
-    borderStyle: 'dashed',
-  },
-  emptyText: {
-    marginTop: 10,
-    color: '#999',
-    fontSize: 13,
-    fontWeight: '600',
-  },
+    color: Colors.onSurfaceVariant,
+    textAlign: 'center',
+    marginTop: 6,
+    opacity: 0.5,
+    lineHeight: 16,
+  }
 });

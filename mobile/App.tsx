@@ -9,9 +9,14 @@ import { RootNavigator } from './src/navigation/RootNavigator';
  * Follows the Single Responsibility Principle.
  */
 import { BirthProvider } from './src/store/BirthContext';
+import { NotificationProvider } from './src/store/NotificationContext';
 import { View, StyleSheet, Platform } from 'react-native';
+import { GlobalToastContainer } from './src/components/shared/Toast';
+import { useNotification } from './src/store/NotificationContext';
 
 import { birthService } from './src/services/birth.service';
+import { authService } from './src/services/auth.service';
+import { API_BASE_URL } from './src/config/api.config';
 
 // Correctif global pour le curseur sur le Web
 if (Platform.OS === 'web') {
@@ -28,19 +33,55 @@ if (Platform.OS === 'web') {
 }
 
 const BackgroundSync = () => {
+  const { showNotification } = useNotification();
+
   React.useEffect(() => {
     const interval = setInterval(async () => {
       try {
+        // Vérifier d'abord si l'utilisateur est connecté
+        const token = await authService.getToken();
+        if (!token) {
+          return; // Pas de token, pas de sync
+        }
+        
+        // Vérifier la validité du token
+        try {
+          const verifyResponse = await fetch(`${API_BASE_URL}/auth/verify`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+          });
+          
+          if (!verifyResponse.ok) {
+            // Token invalide, déconnecter l'utilisateur
+            console.log('[AutoSync] Token invalide, déconnexion...');
+            await authService.logout();
+            showNotification("Votre session a expiré. Veuillez vous reconnecter.", "warning");
+            return;
+          }
+        } catch (e) {
+          // Erreur réseau, on continue quand même (mode offline)
+          console.log('[AutoSync] Erreur réseau, sync annulée');
+          return;
+        }
+        
         const drafts = await birthService.getDrafts();
         if (drafts.length > 0) {
           const isConnected = await birthService.checkConnection();
           if (isConnected) {
             console.log(`[AutoSync] Déclenchement de la synchro pour ${drafts.length} brouillons...`);
-            await birthService.syncDrafts();
+            const result = await birthService.syncDrafts();
+            
+            if (result.success > 0) {
+              showNotification(`${result.success} enregistrement(s) synchronisé(s) avec succès !`, "success");
+            }
+            
+            if (result.failed > 0) {
+              showNotification(`Échec de la synchro pour ${result.failed} brouillon(s).`, "error");
+            }
           }
         }
       } catch (e) {
         // Silent fail for background sync
+        console.log('[AutoSync] Erreur:', e);
       }
     }, 30000); // Toutes les 30 secondes
 
@@ -62,22 +103,28 @@ export default function App() {
   if (Platform.OS === 'web') {
     return (
       <SafeAreaProvider>
+      <NotificationProvider>
         <BirthProvider>
           <View style={styles.webContainer}>
             <View style={styles.webContent}>
               {content}
             </View>
           </View>
+          <GlobalToastContainer />
         </BirthProvider>
+      </NotificationProvider>
       </SafeAreaProvider>
     );
   }
 
   return (
     <SafeAreaProvider>
-      <BirthProvider>
-        {content}
-      </BirthProvider>
+      <NotificationProvider>
+        <BirthProvider>
+          {content}
+          <GlobalToastContainer />
+        </BirthProvider>
+      </NotificationProvider>
     </SafeAreaProvider>
   );
 }

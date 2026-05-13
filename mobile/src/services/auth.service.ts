@@ -1,6 +1,7 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { API_BASE_URL } from '../config/api.config';
 
-const API_URL = 'https://naissancechain-api.onrender.com';
+const API_URL = API_BASE_URL;
 
 export interface User {
   id: string;
@@ -9,6 +10,7 @@ export interface User {
   prenom?: string;
   role: 'ADMINISTRATEUR' | 'SUPERVISEUR' | 'VERIFICATEUR' | 'AGENT' | 'FAMILLE';
   photoUrl?: string;
+  telephone?: string;
 }
 
 export interface AuthResponse {
@@ -23,6 +25,8 @@ export interface IAuthService {
   getToken(): Promise<string | null>;
   getUser(): Promise<User | null>;
   googleLogin(idToken: string): Promise<AuthResponse>;
+  updateProfile(data: { prenom?: string, nom?: string, telephone?: string, photoUrl?: string }): Promise<User>;
+  uploadImage(base64: string): Promise<string>;
 }
 
 class AuthService implements IAuthService {
@@ -102,6 +106,53 @@ class AuthService implements IAuthService {
     // Placeholder for Google Login - to be implemented with Expo Auth Session
     console.log('Google Login with token:', idToken);
     throw new Error('Google Login non configuré sur ce build');
+  }
+
+  async updateProfile(data: { prenom?: string, nom?: string, telephone?: string, photoUrl?: string }): Promise<User> {
+    try {
+      const token = await this.getToken();
+      if (!token) throw new Error('Non authentifié');
+
+      const response = await fetch(`${API_URL}/users/me`, {
+        method: 'PATCH',
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify(data),
+      });
+
+      if (!response.ok) {
+        const err = await response.json().catch(() => ({ message: 'Erreur lors de la mise à jour du profil' }));
+        throw new Error(err.message || 'Erreur lors de la mise à jour du profil');
+      }
+
+      const updatedUser: User = await response.json();
+      await AsyncStorage.setItem('user', JSON.stringify(updatedUser));
+      return updatedUser;
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  async uploadImage(base64: string): Promise<string> {
+    try {
+      const token = await this.getToken();
+      const response = await fetch(`${API_URL}/upload/image`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ base64, filename: `profile_${Date.now()}.jpg` }),
+      });
+
+      if (!response.ok) throw new Error('Erreur upload image');
+      const result = await response.json();
+      return result.url;
+    } catch (error) {
+      throw error;
+    }
   }
 }
 

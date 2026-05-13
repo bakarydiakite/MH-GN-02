@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -33,10 +33,45 @@ const Section = ({ title, icon, children }: any) => (
 );
 
 import { uploadService } from '../../services/upload.service';
+import * as Location from 'expo-location';
 
 export const ReviewConfirmationScreen = ({ navigation }: any) => {
   const { formData, resetForm } = useBirthForm();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [fieldGps, setFieldGps] = useState<{
+    lat: number;
+    lng: number;
+    accuracy: number | null;
+  } | null>(null);
+  const [gpsStatus, setGpsStatus] = useState<'loading' | 'ok' | 'denied' | 'unavailable'>('loading');
+
+  useEffect(() => {
+    let active = true;
+    (async () => {
+      try {
+        const { status } = await Location.requestForegroundPermissionsAsync();
+        if (status !== 'granted') {
+          if (active) setGpsStatus('denied');
+          return;
+        }
+        const pos = await Location.getCurrentPositionAsync({
+          accuracy: Location.Accuracy.Balanced,
+        });
+        if (!active) return;
+        setFieldGps({
+          lat: pos.coords.latitude,
+          lng: pos.coords.longitude,
+          accuracy: pos.coords.accuracy ?? null,
+        });
+        setGpsStatus('ok');
+      } catch {
+        if (active) setGpsStatus('unavailable');
+      }
+    })();
+    return () => {
+      active = false;
+    };
+  }, []);
 
   const handleConfirm = async () => {
     setIsSubmitting(true);
@@ -106,6 +141,13 @@ export const ReviewConfirmationScreen = ({ navigation }: any) => {
         cniMerePhoto: cniMereUrl,
         cniPerePhoto: cniPereUrl,
         acteMariagePhoto: acteMariageUrl,
+        ...(fieldGps
+          ? {
+              enregistrementLatitude: fieldGps.lat,
+              enregistrementLongitude: fieldGps.lng,
+              ...(fieldGps.accuracy != null ? { enregistrementPrecisionM: fieldGps.accuracy } : {}),
+            }
+          : {}),
       };
 
       const result = await birthService.registerBirth(finalData);
@@ -116,6 +158,16 @@ export const ReviewConfirmationScreen = ({ navigation }: any) => {
       });
     } catch (error: any) {
       console.error('[ReviewConfirmation] Submission error:', error);
+      
+      // Erreur d'authentification - rediriger vers login
+      if (error.message === 'Unauthorized' || error.message?.includes('401')) {
+        Alert.alert(
+          'Session expirée',
+          'Votre session a expiré. Veuillez vous reconnecter.',
+          [{ text: 'OK', onPress: () => navigation.reset({ index: 0, routes: [{ name: 'Login' }] }) }]
+        );
+        return;
+      }
       
       const isOfflineError = error.message === 'OFFLINE' || error.message.includes('Network request failed');
 
@@ -130,10 +182,22 @@ export const ReviewConfirmationScreen = ({ navigation }: any) => {
             text: 'Sauvegarder Brouillon', 
             onPress: async () => {
               try {
-                await birthService.saveDraft(formData as any);
+                await birthService.saveDraft({
+                  ...(formData as any),
+                  ...(fieldGps
+                    ? {
+                        enregistrementLatitude: fieldGps.lat,
+                        enregistrementLongitude: fieldGps.lng,
+                        ...(fieldGps.accuracy != null
+                          ? { enregistrementPrecisionM: fieldGps.accuracy }
+                          : {}),
+                      }
+                    : {}),
+                });
                 resetForm();
                 Alert.alert('Succès', 'Enregistrement sauvegardé localement.');
-                navigation.navigate('Dashboard');
+                // Retourner à l'accueil Agent au lieu de Dashboard
+                navigation.reset({ index: 0, routes: [{ name: 'MainAgent' }] });
               } catch (e) {
                 Alert.alert('Erreur', 'Impossible de sauvegarder localement');
               }
@@ -149,10 +213,10 @@ export const ReviewConfirmationScreen = ({ navigation }: any) => {
 
   return (
     <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="light-content" />
+      <StatusBar barStyle="dark-content" />
       <View style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
-          <Ionicons name="arrow-back" size={24} color="#fff" />
+          <Ionicons name="arrow-back" size={24} color={Colors.primary} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Vérification Finale</Text>
         <View style={{ width: 40 }} />
@@ -199,6 +263,20 @@ export const ReviewConfirmationScreen = ({ navigation }: any) => {
           <InfoRow label="Lien" value={formData.lienParenteDeclarant!} />
         </Section>
 
+        <View style={[styles.alertBox, { marginBottom: 12 }]}>
+          <Ionicons name="location-outline" size={20} color="#006948" />
+          <Text style={styles.alertText}>
+            {gpsStatus === 'loading' && 'Capture de la position en cours…'}
+            {gpsStatus === 'ok' &&
+              fieldGps &&
+              `Position enregistrée (${fieldGps.lat.toFixed(5)}, ${fieldGps.lng.toFixed(5)}) — visible par le superviseur sur la carte.`}
+            {gpsStatus === 'denied' &&
+              'Localisation refusée : le superviseur ne verra pas ce point sur la carte (l’acte peut tout de même être envoyé).'}
+            {gpsStatus === 'unavailable' &&
+              'Position indisponible pour le moment. Vous pouvez continuer ; réessayez en plein air si besoin.'}
+          </Text>
+        </View>
+
         <View style={styles.alertBox}>
           <Ionicons name="shield-checkmark" size={20} color="#006948" />
           <Text style={styles.alertText}>L'enregistrement sera certifié par la blockchain après validation.</Text>
@@ -228,11 +306,22 @@ export const ReviewConfirmationScreen = ({ navigation }: any) => {
 };
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#F8F9FA' },
-  header: { backgroundColor: '#006948', paddingHorizontal: 20, paddingVertical: 20, flexDirection: 'row', alignItems: 'center' },
-  backBtn: { width: 40, height: 40, borderRadius: 12, backgroundColor: 'rgba(255,255,255,0.2)', justifyContent: 'center', alignItems: 'center' },
-  headerTitle: { flex: 1, textAlign: 'center', fontSize: 18, color: '#fff', fontWeight: '800' },
-  scrollContent: { padding: 20 },
+  container: { flex: 1, backgroundColor: '#F8FAF9' },
+  header: { 
+    backgroundColor: '#fff', 
+    paddingHorizontal: 20, 
+    paddingVertical: 20, 
+    flexDirection: 'row', 
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.05,
+    shadowRadius: 10,
+    elevation: 2,
+  },
+  backBtn: { width: 44, height: 44, borderRadius: 12, backgroundColor: Colors.primary + '10', justifyContent: 'center', alignItems: 'center' },
+  headerTitle: { flex: 1, textAlign: 'center', fontSize: 18, color: Colors.onSurface, fontWeight: '900', letterSpacing: -0.5 },
+  scrollContent: { padding: 10 },
   hero: { alignItems: 'center', marginBottom: 30, marginTop: 10 },
   heroTitle: { fontSize: 24, fontWeight: '900', color: '#1a1a1a', marginTop: 15 },
   heroSub: { fontSize: 14, color: '#666', textAlign: 'center', marginTop: 5, paddingHorizontal: 20 },
@@ -245,7 +334,7 @@ const styles = StyleSheet.create({
   infoValue: { fontSize: 13, color: '#1a1a1a', fontWeight: '700', flex: 1.5, textAlign: 'right' },
   alertBox: { flexDirection: 'row', alignItems: 'center', gap: 12, backgroundColor: '#E6F3EF', padding: 15, borderRadius: 15, marginBottom: 25 },
   alertText: { flex: 1, fontSize: 12, color: '#006948', fontWeight: '600' },
-  confirmBtn: { backgroundColor: '#006948', borderRadius: 16, height: 56, flexDirection: 'row', justifyContent: 'center', alignItems: 'center', gap: 10, elevation: 4 },
+  confirmBtn: { backgroundColor: Colors.primary, borderRadius: 16, height: 64, flexDirection: 'row', justifyContent: 'center', alignItems: 'center', gap: 10, elevation: 4, shadowColor: Colors.primary, shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0.28, shadowRadius: 12 },
   confirmBtnDisabled: { backgroundColor: '#ADB5BD' },
   confirmBtnText: { color: '#fff', fontSize: 16, fontWeight: '800' },
   cancelBtn: { alignItems: 'center', marginTop: 20 },

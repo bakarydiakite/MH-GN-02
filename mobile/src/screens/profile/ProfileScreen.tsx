@@ -8,12 +8,18 @@ import {
   StatusBar,
   Switch,
   ActivityIndicator,
+  Image as RNImage,
+  TextInput,
+  Alert,
+  KeyboardAvoidingView,
+  Platform,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { MaterialIcons } from '@expo/vector-icons';
+import { MaterialIcons, Feather } from '@expo/vector-icons';
 import { Colors } from '../../theme/colors';
 import { useNavigation } from '@react-navigation/native';
 import { authService, User } from '../../services/auth.service';
+import * as ImagePicker from 'expo-image-picker';
 
 type MenuItemProps = {
   icon: string;
@@ -28,14 +34,14 @@ type MenuItemProps = {
 const MenuItem = ({ icon, label, subtitle, onPress, showArrow = true, badge, danger }: MenuItemProps) => (
   <TouchableOpacity style={styles.menuItem} onPress={onPress} activeOpacity={0.7}>
     <View style={[styles.menuIconBox, danger && styles.menuIconBoxDanger]}>
-      <MaterialIcons name={icon as any} size={22} color={danger ? Colors.error : Colors.primary} />
+      <Feather name={icon as any} size={20} color={danger ? '#FF5252' : '#555'} />
     </View>
     <View style={styles.menuItemContent}>
       <Text style={[styles.menuItemLabel, danger && styles.menuItemLabelDanger]}>{label}</Text>
       {subtitle && <Text style={styles.menuItemSubtitle}>{subtitle}</Text>}
     </View>
     {badge && <View style={styles.menuBadge}><Text style={styles.menuBadgeText}>{badge}</Text></View>}
-    {showArrow && !badge && <MaterialIcons name="chevron-right" size={20} color={Colors.outline} />}
+    {showArrow && !badge && <Feather name="chevron-right" size={18} color="#ccc" />}
   </TouchableOpacity>
 );
 
@@ -43,7 +49,13 @@ export const ProfileScreen = () => {
   const navigation = useNavigation<any>();
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [isSaving, setIsSaving] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
   const [biometricEnabled, setBiometricEnabled] = useState(true);
+
+  const [tempPrenom, setTempPrenom] = useState('');
+  const [tempNom, setTempNom] = useState('');
+  const [tempTelephone, setTempTelephone] = useState('');
 
   useEffect(() => {
     loadUser();
@@ -53,10 +65,74 @@ export const ProfileScreen = () => {
     try {
       const userData = await authService.getUser();
       setUser(userData);
+      if (userData) {
+        setTempPrenom(userData.prenom || '');
+        setTempNom(userData.nom || '');
+        setTempTelephone(userData.telephone || '');
+      }
     } catch (e) {
       console.error('Error loading user profile:', e);
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handlePickImage = async () => {
+    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (status !== 'granted') {
+      Alert.alert('Permission refusée', 'Nous avons besoin de votre permission pour accéder à vos photos.');
+      return;
+    }
+
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      aspect: [1, 1],
+      quality: 0.5,
+      base64: true,
+    });
+
+    if (!result.canceled && result.assets[0].base64) {
+      setIsSaving(true);
+      try {
+        console.log('Uploading photo...');
+        const imageUrl = await authService.uploadImage(result.assets[0].base64);
+        console.log('Photo uploaded, updating profile...', imageUrl);
+        const updatedUser = await authService.updateProfile({ photoUrl: imageUrl });
+        setUser(updatedUser);
+        Alert.alert('Succès', 'Photo de profil mise à jour');
+      } catch (e: any) {
+        console.error('Photo update error:', e);
+        Alert.alert('Erreur', `Impossible de mettre à jour la photo: ${e.message}`);
+      } finally {
+        setIsSaving(false);
+      }
+    }
+  };
+
+  const handleSaveProfile = async () => {
+    if (!tempNom.trim()) {
+      Alert.alert('Erreur', 'Le nom est obligatoire');
+      return;
+    }
+
+    setIsSaving(true);
+    try {
+      console.log('Saving profile...', { tempPrenom, tempNom, tempTelephone });
+      const updatedUser = await authService.updateProfile({
+        prenom: tempPrenom,
+        nom: tempNom,
+        telephone: tempTelephone,
+      });
+      console.log('Profile saved successfully');
+      setUser(updatedUser);
+      setIsEditing(false);
+      Alert.alert('Succès', 'Profil mis à jour avec succès');
+    } catch (e: any) {
+      console.error('Save profile error:', e);
+      Alert.alert('Erreur', `Impossible de mettre à jour le profil: ${e.message}`);
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -67,142 +143,289 @@ export const ProfileScreen = () => {
 
   if (isLoading) {
     return (
-      <View style={[styles.container, styles.centered]}>
+      <View style={styles.centerContainer}>
         <ActivityIndicator size="large" color={Colors.primary} />
       </View>
     );
   }
 
   const isAgent = user?.role === 'AGENT';
+  const roleLabel = isAgent ? "Agent de l'État" : "Compte Citoyen";
+  const badgeColor = isAgent ? '#F5D142' : '#006948';
+  const badgeTextColor = isAgent ? '#000' : '#fff';
 
   return (
-    <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="dark-content" backgroundColor={Colors.background} />
-
-      <View style={styles.topBar}>
-        <Text style={styles.brandTitle}>NaissanceChain</Text>
-        <TouchableOpacity style={styles.iconBtn}><MaterialIcons name="notifications" size={22} color={Colors.primary} /></TouchableOpacity>
-      </View>
-
-      <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
-        <View style={styles.profileCard}>
-          <View style={styles.profileAvatarWrapper}>
-            <View style={styles.profileAvatar}>
-              <MaterialIcons name="person" size={48} color="#fff" />
-            </View>
-          </View>
-          <Text style={styles.profileName}>
-            {user?.prenom || ''} {user?.nom || 'Utilisateur'}
-          </Text>
-          <Text style={styles.profileRole}>
-            {user?.role === 'AGENT' ? 'Agent de Terrain' : 
-             user?.role === 'FAMILLE' ? 'Compte Famille' : 
-             user?.role === 'SUPERVISEUR' ? 'Superviseur' : 'Administrateur'}
-          </Text>
-          <Text style={styles.profileEmail}>{user?.email}</Text>
-
-          <View style={styles.profileBadgeRow}>
-            <View style={styles.profileBadge}>
-              <MaterialIcons name="verified" size={14} color={Colors.primary} />
-              <Text style={styles.profileBadgeText}>Vérifié</Text>
-            </View>
-            <View style={styles.profileBadge}>
-              <MaterialIcons name="security" size={14} color={Colors.primary} />
-              <Text style={styles.profileBadgeText}>Sécurisé</Text>
-            </View>
-          </View>
+    <View style={styles.root}>
+      <StatusBar style="dark" />
+      <SafeAreaView style={styles.container} edges={['top']}>
+        {/* Top Header */}
+        <View style={styles.topHeader}>
+          <Text style={styles.headerTitle}>Profile</Text>
+          <TouchableOpacity onPress={handleLogout}>
+            <Text style={styles.logoutTopText}>Logout</Text>
+          </TouchableOpacity>
         </View>
 
-        {isAgent && (
-          <View style={styles.infoCard}>
-            <Text style={styles.sectionLabel}>INFORMATIONS AGENT</Text>
-            <View style={styles.infoRow}>
-              <Text style={styles.infoKey}>Statut Professionnel</Text>
-              <View style={styles.statusBadgeActive}>
-                <View style={styles.statusDot} />
-                <Text style={styles.statusBadgeText}>Actif</Text>
+        <KeyboardAvoidingView 
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'} 
+          style={{ flex: 1 }}
+        >
+          <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+            {/* Profile Section */}
+            <View style={styles.profileSection}>
+              <View style={styles.avatarContainer}>
+                <TouchableOpacity onPress={handlePickImage} disabled={isSaving}>
+                  <RNImage 
+                    source={{ uri: user?.photoUrl || 'https://i.pravatar.cc/200?u=' + (user?.id || 'agent') }} 
+                    style={styles.avatarLarge} 
+                  />
+                  {isSaving && (
+                    <View style={styles.avatarLoadingOverlay}>
+                      <ActivityIndicator size="small" color="#fff" />
+                    </View>
+                  )}
+                  <View style={styles.photoEditBadge}>
+                    <Feather name="camera" size={12} color="#fff" />
+                  </View>
+                </TouchableOpacity>
+                
+                {!isEditing ? (
+                  <TouchableOpacity style={styles.editAvatarBtn} onPress={() => setIsEditing(true)}>
+                    <Feather name="edit-2" size={14} color={Colors.primary} />
+                    <Text style={styles.editText}>Edit Info</Text>
+                  </TouchableOpacity>
+                ) : (
+                  <TouchableOpacity 
+                    style={[styles.editAvatarBtn, { backgroundColor: Colors.primary }]} 
+                    onPress={handleSaveProfile}
+                    disabled={isSaving}
+                  >
+                    {isSaving ? (
+                      <ActivityIndicator size="small" color="#fff" />
+                    ) : (
+                      <>
+                        <Feather name="check" size={14} color="#fff" />
+                        <Text style={[styles.editText, { color: '#fff' }]}>Save</Text>
+                      </>
+                    )}
+                  </TouchableOpacity>
+                )}
+              </View>
+
+              {isEditing ? (
+                <View style={styles.editForm}>
+                  <View style={styles.inputWrapper}>
+                    <Text style={styles.inputLabel}>Prénom</Text>
+                    <TextInput 
+                      style={styles.editInput} 
+                      value={tempPrenom} 
+                      onChangeText={setTempPrenom}
+                      placeholder="Prénom"
+                      placeholderTextColor="#999"
+                    />
+                  </View>
+                  <View style={styles.inputWrapper}>
+                    <Text style={styles.inputLabel}>Nom *</Text>
+                    <TextInput 
+                      style={styles.editInput} 
+                      value={tempNom} 
+                      onChangeText={setTempNom}
+                      placeholder="Nom"
+                      placeholderTextColor="#999"
+                    />
+                  </View>
+                  <View style={styles.inputWrapper}>
+                    <Text style={styles.inputLabel}>Téléphone</Text>
+                    <TextInput 
+                      style={styles.editInput} 
+                      value={tempTelephone} 
+                      onChangeText={setTempTelephone}
+                      placeholder="Ex: +224 6XX XX XX XX"
+                      placeholderTextColor="#999"
+                      keyboardType="phone-pad"
+                    />
+                  </View>
+                  <TouchableOpacity onPress={() => { setIsEditing(false); setTempPrenom(user?.prenom || ''); setTempNom(user?.nom || ''); setTempTelephone(user?.telephone || ''); }}>
+                    <Text style={styles.cancelText}>Annuler</Text>
+                  </TouchableOpacity>
+                </View>
+              ) : (
+                <View style={styles.userDisplay}>
+                  <Text style={styles.userNameText}>{user?.prenom} {user?.nom}</Text>
+                  <Text style={styles.userEmailText}>{user?.email}</Text>
+                </View>
+              )}
+              
+              <View style={[styles.memberBadge, { backgroundColor: badgeColor }]}>
+                <View style={[styles.checkCircle, { backgroundColor: isAgent ? '#000' : '#fff' }]}>
+                  <MaterialIcons name="check" size={12} color={isAgent ? '#fff' : '#006948'} />
+                </View>
+                <Text style={[styles.memberBadgeText, { color: badgeTextColor }]}>{roleLabel}</Text>
               </View>
             </View>
-            <View style={styles.infoDivider} />
-            <View style={styles.infoRow}>
-              <Text style={styles.infoKey}>ID Agent</Text>
-              <Text style={[styles.infoValue, styles.infoValueMono]}>
-                {user?.id ? user.id.substring(0, 8).toUpperCase() : 'GN-AGT-SCAN'}
-              </Text>
+
+            {/* Settings Section */}
+            <Text style={styles.settingsLabel}>Settings</Text>
+            <View style={styles.settingsCard}>
+              {isAgent ? (
+                <MenuItem icon="file-plus" label="Nouvel Enregistrement" onPress={() => navigation.navigate('RegisterBirthStep1')} />
+              ) : (
+                <MenuItem icon="users" label="Mes Enfants" onPress={() => navigation.navigate('MesEnfants')} />
+              )}
+              
+              <View style={styles.menuDivider} />
+              <MenuItem icon="file-text" label={isAgent ? "Mes Rapports" : "Mes Dossiers"} onPress={() => !isAgent && navigation.navigate('SuiviDossier')} />
+              
+              <View style={styles.menuDivider} />
+              <MenuItem icon="bell" label="Notifications" />
+              
+              <View style={styles.menuDivider} />
+              <MenuItem icon="globe" label="Langue" subtitle="Français" />
+              
+              <View style={styles.menuDivider} />
+              <View style={styles.menuItem}>
+                <View style={styles.menuIconBox}>
+                  <Feather name="maximize" size={20} color="#555" />
+                </View>
+                <View style={styles.menuItemContent}>
+                  <Text style={styles.menuItemLabel}>Face Id</Text>
+                </View>
+                <Switch 
+                  value={biometricEnabled} 
+                  onValueChange={setBiometricEnabled} 
+                  trackColor={{ false: '#eee', true: Colors.primary + '40' }}
+                  thumbColor={biometricEnabled ? Colors.primary : '#ccc'}
+                />
+              </View>
+
+              <View style={styles.menuDivider} />
+              <MenuItem icon="sun" label="Thème" subtitle="Clair" />
+              
+              <View style={styles.menuDivider} />
+              <MenuItem icon="info" label="Conditions d'utilisation" />
             </View>
-          </View>
-        )}
 
-        <View style={styles.menuSection}>
-          <Text style={styles.sectionLabel}>SÉCURITÉ & ACCÈS</Text>
-          <View style={styles.menuCard}>
-            <View style={styles.menuItem}>
-              <View style={styles.menuIconBox}><MaterialIcons name="fingerprint" size={22} color={Colors.primary} /></View>
-              <View style={styles.menuItemContent}><Text style={styles.menuItemLabel}>Authentification biométrique</Text><Text style={styles.menuItemSubtitle}>Empreinte digitale ou Face ID</Text></View>
-              <Switch value={biometricEnabled} onValueChange={setBiometricEnabled} trackColor={{ false: Colors.surfaceContainerHigh, true: Colors.primary + '60' }} thumbColor={biometricEnabled ? Colors.primary : Colors.outline} />
-            </View>
-            <View style={styles.menuDivider} /><MenuItem icon="lock-reset" label="Changer le mot de passe" />
-          </View>
-        </View>
-
-        <View style={styles.menuSection}>
-          <Text style={styles.sectionLabel}>SUPPORT</Text>
-          <View style={styles.menuCard}>
-            <MenuItem icon="help-outline" label="Centre d'aide" />
-            <View style={styles.menuDivider} /><MenuItem icon="policy" label="Politique de confidentialité" />
-            <View style={styles.menuDivider} /><MenuItem icon="info-outline" label="Version" badge="v1.0.2" showArrow={false} />
-          </View>
-        </View>
-
-        <View style={styles.menuSection}>
-          <View style={styles.menuCard}><MenuItem icon="logout" label="Se déconnecter" danger onPress={handleLogout} /></View>
-        </View>
-
-        <View style={styles.footer}><Text style={styles.footerText}>NaissanceChain · Guinée</Text></View>
-        <View style={{ height: 40 }} />
-      </ScrollView>
-    </SafeAreaView>
+            <View style={{ height: 40 }} />
+          </ScrollView>
+        </KeyboardAvoidingView>
+      </SafeAreaView>
+    </View>
   );
 };
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: Colors.background },
-  centered: { justifyContent: 'center', alignItems: 'center' },
-  topBar: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 20, paddingVertical: 14 },
-  brandTitle: { fontSize: 18, fontWeight: '900', color: Colors.onSurface, letterSpacing: -0.5 },
-  iconBtn: { width: 40, height: 40, borderRadius: 12, backgroundColor: Colors.surfaceContainerLowest, justifyContent: 'center', alignItems: 'center' },
-  scrollContent: { paddingHorizontal: 20, paddingBottom: 40 },
-  profileCard: { backgroundColor: Colors.surfaceContainerLowest, borderRadius: 28, padding: 28, alignItems: 'center', marginBottom: 16, elevation: 3 },
-  profileAvatarWrapper: { marginBottom: 14 },
-  profileAvatar: { width: 88, height: 88, borderRadius: 44, backgroundColor: Colors.primary, justifyContent: 'center', alignItems: 'center', borderWidth: 3, borderColor: '#78fbb6' },
-  profileName: { fontSize: 24, fontWeight: '900', color: Colors.onSurface, marginBottom: 4 },
-  profileRole: { fontSize: 13, color: Colors.onSurfaceVariant, fontWeight: '600', marginBottom: 2 },
-  profileEmail: { fontSize: 12, color: Colors.outline, marginBottom: 14 },
-  profileBadgeRow: { flexDirection: 'row', gap: 8, marginBottom: 10 },
-  profileBadge: { flexDirection: 'row', alignItems: 'center', gap: 5, backgroundColor: Colors.surfaceContainerLow, paddingHorizontal: 12, paddingVertical: 6, borderRadius: 20 },
-  profileBadgeText: { fontSize: 11, fontWeight: '800', color: Colors.primary },
-  infoCard: { backgroundColor: Colors.surfaceContainerLowest, borderRadius: 24, padding: 20, marginBottom: 16 },
-  sectionLabel: { fontSize: 9, fontWeight: '900', color: Colors.outline, letterSpacing: 1.5, marginBottom: 14, paddingHorizontal: 4 },
-  infoRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: 10 },
-  infoKey: { fontSize: 13, color: Colors.onSurfaceVariant, fontWeight: '600' },
-  infoValue: { fontSize: 13, color: Colors.onSurface, fontWeight: '800' },
-  infoValueMono: { fontFamily: 'monospace', color: Colors.primary },
-  infoDivider: { height: 1, backgroundColor: Colors.surfaceContainerLow },
-  statusBadgeActive: { flexDirection: 'row', alignItems: 'center', gap: 5, backgroundColor: Colors.primary + '15', paddingHorizontal: 10, paddingVertical: 5, borderRadius: 20 },
-  statusDot: { width: 6, height: 6, borderRadius: 3, backgroundColor: Colors.primary },
-  statusBadgeText: { fontSize: 11, fontWeight: '900', color: Colors.primary },
-  menuSection: { marginBottom: 16 },
-  menuCard: { backgroundColor: Colors.surfaceContainerLowest, borderRadius: 24, overflow: 'hidden' },
-  menuItem: { flexDirection: 'row', alignItems: 'center', padding: 16, gap: 12 },
-  menuIconBox: { width: 42, height: 42, borderRadius: 13, backgroundColor: Colors.surfaceContainerLow, justifyContent: 'center', alignItems: 'center' },
-  menuIconBoxDanger: { backgroundColor: Colors.error + '15' },
+  root: { flex: 1, backgroundColor: '#F9F9FB' },
+  container: { flex: 1 },
+  centerContainer: { flex: 1, justifyContent: 'center', alignItems: 'center' },
+  
+  topHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 24,
+    paddingVertical: 15,
+  },
+  headerTitle: { fontSize: 24, fontWeight: '700', color: '#1A1A1A' },
+  logoutTopText: { fontSize: 16, fontWeight: '600', color: '#FF4D4D' },
+
+  scrollContent: { paddingHorizontal: 24, paddingTop: 20 },
+
+  profileSection: { alignItems: 'center', marginBottom: 40 },
+  avatarContainer: { position: 'relative', marginBottom: 20 },
+  avatarLarge: { width: 110, height: 110, borderRadius: 55, backgroundColor: '#E0E0E0' },
+  avatarLoadingOverlay: { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(0,0,0,0.3)', borderRadius: 55, justifyContent: 'center', alignItems: 'center' },
+  photoEditBadge: { position: 'absolute', top: 5, right: 5, width: 24, height: 24, borderRadius: 12, backgroundColor: Colors.primary, justifyContent: 'center', alignItems: 'center', borderWidth: 2, borderColor: '#fff' },
+  
+  editAvatarBtn: {
+    position: 'absolute',
+    bottom: -10,
+    alignSelf: 'center',
+    backgroundColor: '#fff',
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 20,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 4,
+    gap: 4,
+    borderWidth: 1,
+    borderColor: '#F0F0F0',
+  },
+  editText: { fontSize: 12, fontWeight: '700', color: Colors.primary },
+
+  userDisplay: { alignItems: 'center', marginBottom: 15 },
+  userNameText: { fontSize: 22, fontWeight: '700', color: '#1A1A1A', marginBottom: 2 },
+  userEmailText: { fontSize: 13, color: '#999', fontWeight: '500' },
+
+  editForm: { width: '100%', alignItems: 'center', gap: 15, marginBottom: 25 },
+  inputWrapper: { width: '90%' },
+  inputLabel: { fontSize: 10, fontWeight: '800', color: '#BBB', marginBottom: 5, textTransform: 'uppercase', marginLeft: 5 },
+  editInput: { 
+    width: '100%', 
+    height: 48, 
+    backgroundColor: '#fff', 
+    borderRadius: 14, 
+    paddingHorizontal: 16, 
+    borderWidth: 1, 
+    borderColor: '#E0E0E0',
+    fontSize: 15,
+    fontWeight: '600',
+    color: '#1A1A1A'
+  },
+  cancelText: { color: '#999', fontWeight: '700', fontSize: 14, marginTop: 5 },
+
+  memberBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 25,
+    gap: 8,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 10,
+    elevation: 3,
+  },
+  checkCircle: {
+    width: 18,
+    height: 18,
+    borderRadius: 9,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  memberBadgeText: { fontSize: 13, fontWeight: '700' },
+
+  settingsLabel: { fontSize: 18, fontWeight: '700', color: '#1A1A1A', marginBottom: 20 },
+  settingsCard: { 
+    backgroundColor: '#fff', 
+    borderRadius: 24, 
+    padding: 8,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.05,
+    shadowRadius: 25,
+    elevation: 4,
+  },
+
+  menuItem: { flexDirection: 'row', alignItems: 'center', padding: 16, gap: 16 },
+  menuIconBox: { 
+    width: 44, 
+    height: 44, 
+    borderRadius: 14, 
+    backgroundColor: '#F5F6F8', 
+    justifyContent: 'center', 
+    alignItems: 'center' 
+  },
   menuItemContent: { flex: 1 },
-  menuItemLabel: { fontSize: 14, fontWeight: '700', color: Colors.onSurface },
-  menuItemLabelDanger: { color: Colors.error },
-  menuItemSubtitle: { fontSize: 11, color: Colors.onSurfaceVariant, marginTop: 1 },
-  menuDivider: { height: 1, backgroundColor: Colors.surfaceContainerLow, marginLeft: 70 },
-  menuBadge: { backgroundColor: Colors.primary + '20', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 20 },
-  menuBadgeText: { fontSize: 11, fontWeight: '800', color: Colors.primary },
-  footer: { alignItems: 'center', paddingTop: 16 },
-  footerText: { fontSize: 12, fontWeight: '700', color: Colors.outline },
+  menuItemLabel: { fontSize: 15, fontWeight: '600', color: '#333' },
+  menuItemSubtitle: { fontSize: 13, color: '#999', fontWeight: '500' },
+  menuDivider: { height: 1, backgroundColor: '#F5F6F8', marginHorizontal: 16 },
+
+  menuBadge: { backgroundColor: Colors.primary + '15', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 12 },
+  menuBadgeText: { fontSize: 10, fontWeight: '800', color: Colors.primary },
 });

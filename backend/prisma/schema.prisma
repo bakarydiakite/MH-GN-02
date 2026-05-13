@@ -7,6 +7,7 @@ generator client {
 
 datasource db {
   provider = "postgresql"
+  url      = env("DATABASE_URL")
 }
 
 // =========================================================
@@ -142,6 +143,7 @@ model User {
   prenom              String?   @db.VarChar(120)
   email               String?   @unique @db.VarChar(180)
   telephone           String?   @db.VarChar(30)
+  photoUrl            String?   @map("photo_url") @db.Text
   motDePasseHash      String    @map("mot_de_passe_hash")
   role                UserRole
   actif               Boolean   @default(true)
@@ -224,6 +226,12 @@ model BirthRecord {
   
   hashBlockchain              String?     @map("hash_blockchain") @db.Text
   qrReference                 String?     @map("qr_reference") @db.Text
+
+  /// Position GPS au moment de l’enregistrement terrain (agent)
+  enregistrementLatitude      Float?      @map("enregistrement_latitude")
+  enregistrementLongitude     Float?      @map("enregistrement_longitude")
+  enregistrementPrecisionM     Float?      @map("enregistrement_precision_m")
+  enregistrementCaptureLe      DateTime?   @map("enregistrement_capture_le")
 
   dateCreationMetier          DateTime    @default(now()) @map("date_creation_metier")
   dateValidation              DateTime?   @map("date_validation")

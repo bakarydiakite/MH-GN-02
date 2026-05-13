@@ -1,6 +1,6 @@
-import { Controller, Post, Get, Body, Param, UseGuards, Request, Query } from '@nestjs/common';
+import { Controller, Post, Get, Body, Param, Query, UseGuards, Request, Patch } from '@nestjs/common';
 import { BirthsService } from './births.service';
-import { CreateBirthDto, ValidateBirthDto } from './dto/birth.dto';
+import { CreateBirthDto, RejectBirthDto, UpdateRejectedBirthDto } from './dto/birth.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
@@ -22,9 +22,36 @@ export class BirthsController {
     return this.birthsService.findAll({ ...filters, userId: req.user.userId });
   }
 
+<<<<<<< HEAD
   @Get('verify/:reference')
   verify(@Param('reference') reference: string, @Request() req: any) {
     return this.birthsService.verify(reference, req.ip);
+=======
+  @UseGuards(JwtAuthGuard)
+  @Get('by-status/:status')
+  findByStatus(@Request() req: any, @Param('status') status: string) {
+    return this.birthsService.findByStatus(status, req.user.userId);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Get('pending')
+  findPending(@Request() req: any) {
+    return this.birthsService.findPending(req.user.userId);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Get('verify/:iun')
+  verify(@Request() req: any, @Param('iun') iun: string) {
+    return this.birthsService.verify(iun, req.user.userId);
+  }
+
+  /** Dossiers rejetés à corriger (agent connecté) — avant GET :id */
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.AGENT)
+  @Get('agent/rejections')
+  myRejections(@Request() req: any) {
+    return this.birthsService.findRejectionsForAgent(req.user.userId);
+>>>>>>> 147c53fee3b35f3abc4900c392072781bff9eb1e
   }
 
   @UseGuards(JwtAuthGuard)
@@ -33,10 +60,18 @@ export class BirthsController {
     return this.birthsService.linkChildToUser(req.user.userId, iun);
   }
 
+<<<<<<< HEAD
   @UseGuards(JwtAuthGuard)
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.birthsService.findOne(id);
+=======
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.ADMINISTRATEUR)
+  @Post('seed-attachments')
+  seedAttachments() {
+    return this.birthsService.seedAttachments();
+>>>>>>> 147c53fee3b35f3abc4900c392072781bff9eb1e
   }
 
   @UseGuards(JwtAuthGuard, RolesGuard)
@@ -49,7 +84,36 @@ export class BirthsController {
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.SUPERVISEUR, UserRole.ADMINISTRATEUR)
   @Post(':id/reject')
-  reject(@Param('id') id: string, @Request() req: any, @Body() dto: ValidateBirthDto) {
-    return this.birthsService.reject(id, req.user.userId, dto);
+  reject(@Param('id') id: string, @Body() dto: RejectBirthDto, @Request() req: any) {
+    return this.birthsService.reject(id, req.user.userId, { motif: dto.motif });
+  }
+
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.AGENT)
+  @Post(':id/resubmit')
+  resubmit(@Param('id') id: string, @Request() req: any) {
+    return this.birthsService.resubmitRejected(id, req.user.userId);
+  }
+
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.AGENT)
+  @Patch(':id')
+  patchBirth(@Param('id') id: string, @Body() dto: UpdateRejectedBirthDto, @Request() req: any) {
+    return this.birthsService.updateRejectedBirth(id, req.user.userId, dto);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Post(':id/attachments')
+  addAttachment(
+    @Param('id') id: string,
+    @Body() body: { type: string; urlFichier: string; nomFichier?: string },
+  ) {
+    return this.birthsService.addAttachment(id, body.type, body.urlFichier, body.nomFichier);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Get(':id')
+  findOne(@Request() req: any, @Param('id') id: string) {
+    return this.birthsService.findOne(id, req.user.userId);
   }
 }
