@@ -5,6 +5,9 @@ import HomePage from './pages/HomePage';
 import AboutPage from './pages/AboutPage';
 import VerificationPage from './pages/VerificationPage';
 import AdminLayout from "./portail_web_admin/layouts/AdminLayout";
+import ProtectedAdminRoute from "./portail_web_admin/components/ProtectedAdminRoute";
+import AdminLogin from "./portail_web_admin/pages/AdminLogin";
+import AdminRegister from "./portail_web_admin/pages/AdminRegister";
 import Dashboard from "./portail_web_admin/pages/Dashboard";
 import Records from "./portail_web_admin/pages/Records";
 import Verification from "./portail_web_admin/pages/Verification";
@@ -47,14 +50,19 @@ export default function App() {
           </div>
         } />
 
+        <Route path="/admin/login" element={<AdminLogin />} />
+        <Route path="/admin/register" element={<AdminRegister />} />
+
         {/* Admin Portal */}
-        <Route path="/admin" element={<AdminLayout />}>
-          <Route index element={<Dashboard />} />
-          <Route path="records" element={<Records />} />
-          <Route path="verification" element={<Verification />} />
-          <Route path="stats" element={<Stats />} />
-          <Route path="users" element={<Users />} />
-          <Route path="structures" element={<Structures />} />
+        <Route element={<ProtectedAdminRoute />}>
+          <Route path="/admin" element={<AdminLayout />}>
+            <Route index element={<Dashboard />} />
+            <Route path="records" element={<Records />} />
+            <Route path="verification" element={<Verification />} />
+            <Route path="stats" element={<Stats />} />
+            <Route path="users" element={<Users />} />
+            <Route path="structures" element={<Structures />} />
+          </Route>
         </Route>
       </Routes>
     </BrowserRouter>

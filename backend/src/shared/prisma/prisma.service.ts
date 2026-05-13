@@ -7,6 +7,13 @@ import { Pool } from 'pg';
 export class PrismaService extends PrismaClient implements OnModuleInit, OnModuleDestroy {
   constructor() {
     const connectionString = process.env.DATABASE_URL;
+
+    if (!connectionString) {
+      throw new Error(
+        'DATABASE_URL est manquant. Ajoutez-le dans backend/.env, par exemple: postgresql://admin:password123@localhost:5433/naissancechain_db',
+      );
+    }
+
     const pool = new Pool({ connectionString });
     const adapter = new PrismaPg(pool);
     super({ adapter });

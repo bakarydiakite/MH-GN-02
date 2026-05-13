@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import { 
@@ -8,9 +8,7 @@ import {
   TrendingUp, 
   TrendingDown,
   MoreVertical,
-  Filter,
-  Calendar,
-  CheckCircle2
+  Calendar
 } from 'lucide-react';
 import { apiService } from '../../services/api';
 

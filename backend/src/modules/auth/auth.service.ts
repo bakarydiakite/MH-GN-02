@@ -1,7 +1,7 @@
-import { Injectable, UnauthorizedException, ConflictException, BadRequestException } from '@nestjs/common';
+import { Injectable, UnauthorizedException, ConflictException, BadRequestException, NotFoundException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { PrismaService } from '../../shared/prisma/prisma.service';
-import { LoginDto, RegisterDto } from './dto/auth.dto';
+import { AdminRegisterDto, LoginDto, RegisterDto } from './dto/auth.dto';
 import * as bcrypt from 'bcrypt';
 import { UserRole } from '@prisma/client';
 import { OAuth2Client } from 'google-auth-library';
@@ -108,6 +108,54 @@ export class AuthService {
     return this.generateToken(user);
   }
 
+  async registerFirstAdmin(dto: AdminRegisterDto) {
+    const existingAdmin = await this.prisma.user.count({
+      where: { role: UserRole.ADMINISTRATEUR },
+    });
+
+    if (existingAdmin > 0) {
+      throw new ConflictException(
+        "Un compte administrateur existe deja. La creation publique d'un admin est fermee.",
+      );
+    }
+
+    const existingUser = await this.prisma.user.findUnique({
+      where: { email: dto.email.toLowerCase().trim() },
+    });
+
+    if (existingUser) {
+      throw new ConflictException('Email deja utilise');
+    }
+
+    const user = await this.prisma.user.create({
+      data: {
+        email: dto.email.toLowerCase().trim(),
+        motDePasseHash: await bcrypt.hash(dto.password, 10),
+        nom: dto.nom.trim(),
+        prenom: dto.prenom?.trim(),
+        telephone: dto.telephone?.trim(),
+        role: UserRole.ADMINISTRATEUR,
+        actif: true,
+        derniereConnexionAt: new Date(),
+      },
+    });
+
+    await this.prisma.auditLog.create({
+      data: {
+        utilisateurId: user.id,
+        action: 'ADMIN_BOOTSTRAP_CREATED',
+        typeEntite: 'User',
+        entiteId: user.id,
+        details: {
+          email: user.email,
+          role: user.role,
+        },
+      },
+    });
+
+    return this.generateToken(user);
+  }
+
   async login(dto: LoginDto) {
     let user = await this.prisma.user.findFirst({
       where: {
@@ -179,6 +227,65 @@ export class AuthService {
     }
 
     return this.generateToken(user);
+  }
+
+  async adminLogin(dto: LoginDto) {
+    const user = await this.prisma.user.findFirst({
+      where: {
+        OR: [
+          { email: dto.email.toLowerCase().trim() },
+          { telephone: dto.email.trim() },
+        ],
+      },
+    });
+
+    if (!user || !user.actif) {
+      throw new UnauthorizedException('Identifiants administrateur invalides');
+    }
+
+    const allowedRoles: UserRole[] = [
+      UserRole.ADMINISTRATEUR,
+      UserRole.SUPERVISEUR,
+      UserRole.VERIFICATEUR,
+    ];
+
+    if (!allowedRoles.includes(user.role)) {
+      throw new UnauthorizedException("Ce compte n'a pas accès au portail web d'administration");
+    }
+
+    const isPasswordValid = await bcrypt.compare(dto.password || '', user.motDePasseHash);
+
+    if (!isPasswordValid) {
+      throw new UnauthorizedException('Identifiants administrateur invalides');
+    }
+
+    await this.prisma.user.update({
+      where: { id: user.id },
+      data: { derniereConnexionAt: new Date() },
+    });
+
+    return this.generateToken(user);
+  }
+
+  async me(userId: string) {
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+      select: {
+        id: true,
+        email: true,
+        nom: true,
+        prenom: true,
+        role: true,
+        actif: true,
+        derniereConnexionAt: true,
+      },
+    });
+
+    if (!user || !user.actif) {
+      throw new NotFoundException('Utilisateur introuvable');
+    }
+
+    return user;
   }
 
   private generateToken(user: any) {

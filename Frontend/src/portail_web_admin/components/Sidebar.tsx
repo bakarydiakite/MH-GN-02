@@ -31,7 +31,7 @@ const menuCompte = [
 ];
 
 export default function Sidebar() {
-  const [isCollapsed, setIsCollapsed] = useState(false);
+  const [isCollapsed] = useState(false);
   const location = useLocation();
 
   const renderNavItem = (item: any) => {

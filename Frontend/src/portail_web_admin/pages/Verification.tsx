@@ -1,4 +1,5 @@
 import { motion } from 'framer-motion';
+import { useState } from 'react';
 import { 
   ShieldCheck, 
   Percent, 
@@ -8,6 +9,7 @@ import {
   History,
   FileText
 } from 'lucide-react';
+import { apiService } from '../../services/api';
 
 const stats = [
   { label: 'Vérifications aujourd\'hui', value: '247', icon: ShieldCheck, color: '#10B981' },
@@ -28,6 +30,26 @@ const exampleRecords = [
 ];
 
 export default function Verification() {
+  const [reference, setReference] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [result, setResult] = useState<any | null>(null);
+  const [error, setError] = useState('');
+
+  const handleVerify = async () => {
+    if (!reference.trim()) return;
+    setLoading(true);
+    setError('');
+    setResult(null);
+
+    try {
+      setResult(await apiService.verifyBirth(reference.trim()));
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Verification impossible');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 32 }}>
       {/* Header Section */}
@@ -115,19 +137,62 @@ export default function Verification() {
                   <Search size={20} color="#94A3B8" />
                   <input 
                     type="text" 
-                    placeholder="ex. NC-2024-001847" 
+                    value={reference}
+                    onChange={(event) => setReference(event.target.value.toUpperCase())}
+                    onKeyDown={(event) => {
+                      if (event.key === 'Enter') handleVerify();
+                    }}
+                    placeholder="ex. GN-2026-ABC123 ou ACTE-GN-2026-ABC123" 
                     style={{ border: 'none', outline: 'none', background: 'transparent', width: '100%', fontSize: 16, color: '#1E293B' }}
                   />
                 </div>
-                <button style={{ 
+                <button
+                  onClick={handleVerify}
+                  disabled={loading || !reference.trim()}
+                  style={{ 
                   background: '#64748B', color: '#fff', border: 'none', borderRadius: 16, 
-                  padding: '0 32px', fontWeight: 600, fontSize: 16, cursor: 'pointer',
+                  padding: '0 32px', fontWeight: 600, fontSize: 16, cursor: loading ? 'wait' : 'pointer',
                   display: 'flex', alignItems: 'center', gap: 10
                 }}>
-                  <Search size={20} /> Vérifier
+                  <Search size={20} /> {loading ? 'Recherche...' : 'Vérifier'}
                 </button>
               </div>
             </div>
+
+            {error && (
+              <div style={{ marginBottom: 24, border: '1px solid #FECACA', background: '#FEF2F2', color: '#B91C1C', borderRadius: 12, padding: 16, fontWeight: 600 }}>
+                {error}
+              </div>
+            )}
+
+            {result && (
+              <div style={{ marginBottom: 24, border: `1px solid ${result.valid ? '#BBF7D0' : '#FDE68A'}`, background: result.valid ? '#F0FDF4' : '#FFFBEB', borderRadius: 16, padding: 24 }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 20 }}>
+                  <div>
+                    <p style={{ margin: 0, fontSize: 12, fontWeight: 800, color: result.valid ? '#047857' : '#B45309', textTransform: 'uppercase' }}>
+                      {result.status}
+                    </p>
+                    <h3 style={{ margin: '6px 0 0', fontSize: 22, color: '#0F172A' }}>
+                      {result.record?.enfant ? `${result.record.enfant.prenoms} ${result.record.enfant.nom}` : 'Acte introuvable'}
+                    </h3>
+                    <p style={{ margin: '6px 0 0', color: '#64748B' }}>
+                      {result.record?.identifiantUniqueNational || result.message}
+                    </p>
+                  </div>
+                  <div style={{ textAlign: 'right', fontSize: 13, color: '#475569' }}>
+                    <strong>Blockchain</strong>
+                    <p style={{ margin: '4px 0 0' }}>{result.blockchainVerified ? 'Preuve ancrée' : 'Preuve non confirmée'}</p>
+                  </div>
+                </div>
+                {result.record && (
+                  <div style={{ marginTop: 20, display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 16 }}>
+                    <div><span style={{ fontSize: 11, color: '#64748B', fontWeight: 800 }}>DATE NAISSANCE</span><p style={{ margin: 0, fontWeight: 700 }}>{result.record.enfant?.dateNaissance ? new Date(result.record.enfant.dateNaissance).toLocaleDateString('fr-FR') : '-'}</p></div>
+                    <div><span style={{ fontSize: 11, color: '#64748B', fontWeight: 800 }}>LIEU</span><p style={{ margin: 0, fontWeight: 700 }}>{result.record.enfant?.lieuNaissanceLibelle || '-'}</p></div>
+                    <div><span style={{ fontSize: 11, color: '#64748B', fontWeight: 800 }}>TX HASH</span><p style={{ margin: 0, fontWeight: 700, fontFamily: 'monospace' }}>{result.record.blockchainTx?.txHash ? `${result.record.blockchainTx.txHash.slice(0, 14)}...` : '-'}</p></div>
+                  </div>
+                )}
+              </div>
+            )}
 
             <div style={{ display: 'flex', alignItems: 'center', gap: 24 }}>
               <button style={{ 

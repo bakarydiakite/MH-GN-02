@@ -1,13 +1,8 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
-  Search, 
   Download, 
-  Filter, 
-  ChevronDown, 
   ShieldCheck, 
-  Eye,
-  MoreHorizontal,
   Loader2,
   CheckCircle2,
   ExternalLink
@@ -122,7 +117,7 @@ export default function Records() {
                     Aucun dossier trouvé.
                   </td>
                 </tr>
-              ) : records.map((record, i) => (
+              ) : records.map((record) => (
                 <tr key={record.id} style={{ borderBottom: '1px solid #F1F5F9' }}>
                   <td style={{ padding: '20px 32px' }}>
                     <span style={{ fontWeight: 600, color: '#1E293B' }}>

@@ -3,9 +3,7 @@ import {
   TrendingUp, 
   Map, 
   Users, 
-  ShieldCheck, 
-  Calendar,
-  ChevronRight
+  ShieldCheck
 } from 'lucide-react';
 
 const stats = [

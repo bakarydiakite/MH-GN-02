@@ -1,0 +1,70 @@
+<svg width="960" height="960" viewBox="0 0 960 960" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="960" height="960" rx="28" fill="url(#bg)"/>
+  <path d="M0 152C70 94 137 80 199 111C233 128 249 153 259 180L0 228V152Z" fill="white"/>
+  <path d="M686 144C726 78 790 45 846 68C892 87 914 126 922 180L960 169V257L596 319C604 245 633 183 686 144Z" fill="white"/>
+  <path d="M565 855C591 802 642 770 695 789C730 802 752 829 762 866C815 841 874 863 903 916H565V855Z" fill="white"/>
+  <path d="M0 860C33 812 91 798 144 820C176 776 233 755 283 783C318 802 337 833 345 875L0 926V860Z" fill="white"/>
+
+  <ellipse cx="284" cy="286" rx="96" ry="72" fill="white"/>
+  <path d="M272 288L309 326L373 240" stroke="#0D7A5F" stroke-width="18" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M354 325L430 374L386 289L354 325Z" fill="white"/>
+
+  <g filter="url(#phoneShadow)">
+    <rect x="454" y="204" width="285" height="520" rx="42" transform="rotate(8 454 204)" fill="#18142D"/>
+    <rect x="485" y="231" width="230" height="462" rx="30" transform="rotate(8 485 231)" fill="url(#screen)"/>
+    <circle cx="606" cy="235" r="8" fill="#18142D"/>
+    <path d="M533 358C539 327 562 306 592 301" stroke="white" stroke-width="8" stroke-linecap="round"/>
+    <path d="M650 298C681 304 702 326 706 357" stroke="white" stroke-width="8" stroke-linecap="round"/>
+    <path d="M511 443C517 474 540 494 571 499" stroke="white" stroke-width="8" stroke-linecap="round"/>
+    <path d="M629 502C661 496 681 473 686 442" stroke="white" stroke-width="8" stroke-linecap="round"/>
+    <path d="M611 345C585 351 566 373 563 401C559 438 585 469 621 473C656 477 687 451 691 415C694 379 669 349 634 345" stroke="white" stroke-width="9" stroke-linecap="round"/>
+    <path d="M624 370C604 372 590 389 588 409C586 431 602 451 624 453C646 456 665 440 668 418C670 397 657 379 637 374" stroke="white" stroke-width="7" stroke-linecap="round"/>
+    <path d="M626 396C617 397 610 405 609 414C608 425 616 434 627 435C637 436 646 429 647 418C648 409 643 401 635 398" stroke="white" stroke-width="6" stroke-linecap="round"/>
+    <rect x="549" y="559" width="130" height="9" rx="4.5" transform="rotate(8 549 559)" fill="#73D7FF"/>
+    <rect x="552" y="582" width="96" height="8" rx="4" transform="rotate(8 552 582)" fill="rgba(255,255,255,0.55)"/>
+  </g>
+
+  <g filter="url(#personShadow)">
+    <path d="M337 318C356 301 381 306 394 328C406 349 394 372 371 378C347 385 326 372 323 350C321 337 326 326 337 318Z" fill="#22243A"/>
+    <path d="M340 356C367 354 394 367 411 393L454 459L516 503L493 531L425 493L382 443L359 520L312 509L329 417C313 404 309 382 318 366C323 359 331 356 340 356Z" fill="#FFD247"/>
+    <path d="M312 509L397 542L381 635L343 631L349 574L293 558L312 509Z" fill="white"/>
+    <path d="M397 542L459 604L527 579L545 614L453 659L370 598L397 542Z" fill="white"/>
+    <path d="M343 631L379 635L384 666L332 661L343 631Z" fill="#25233D"/>
+    <path d="M527 579L545 614L577 613L548 566L527 579Z" fill="#25233D"/>
+    <path d="M371 378C387 382 401 387 411 393" stroke="#D7A22F" stroke-width="8" stroke-linecap="round"/>
+    <path d="M361 353C374 358 389 351 393 336C396 323 388 310 376 306C362 301 349 308 345 321C341 335 348 348 361 353Z" fill="#D98768"/>
+    <path d="M345 322C361 324 374 319 383 307C366 291 339 299 333 319C331 327 333 337 339 344L345 322Z" fill="#22243A"/>
+    <path d="M461 459L507 431" stroke="#D98768" stroke-width="14" stroke-linecap="round"/>
+    <path d="M505 431L522 406" stroke="#D98768" stroke-width="10" stroke-linecap="round"/>
+    <path d="M329 419L280 494" stroke="#22243A" stroke-width="15" stroke-linecap="round"/>
+  </g>
+
+  <g filter="url(#lockShadow)">
+    <rect x="744" y="408" width="139" height="156" rx="24" fill="white"/>
+    <path d="M777 410V359C777 321 805 294 840 294C875 294 903 321 903 359V410" stroke="white" stroke-width="28" stroke-linecap="round"/>
+    <circle cx="814" cy="479" r="23" fill="#0D7A5F"/>
+    <path d="M814 501V532" stroke="#0D7A5F" stroke-width="13" stroke-linecap="round"/>
+  </g>
+
+  <defs>
+    <linearGradient id="bg" x1="65" y1="792" x2="905" y2="68" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#A7D8CA"/>
+      <stop offset="0.55" stop-color="#0D7A5F"/>
+      <stop offset="1" stop-color="#0A5C47"/>
+    </linearGradient>
+    <linearGradient id="screen" x1="530" y1="240" x2="709" y2="640" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#4DFFC3"/>
+      <stop offset="0.48" stop-color="#10B981"/>
+      <stop offset="1" stop-color="#0D7A5F"/>
+    </linearGradient>
+    <filter id="phoneShadow" x="388" y="172" width="408" height="614" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+      <feDropShadow dx="14" dy="20" stdDeviation="10" flood-color="#151233" flood-opacity="0.45"/>
+    </filter>
+    <filter id="personShadow" x="265" y="289" width="329" height="393" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+      <feDropShadow dx="12" dy="18" stdDeviation="9" flood-color="#151233" flood-opacity="0.25"/>
+    </filter>
+    <filter id="lockShadow" x="724" y="274" width="203" height="314" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+      <feDropShadow dx="14" dy="16" stdDeviation="9" flood-color="#151233" flood-opacity="0.35"/>
+    </filter>
+  </defs>
+</svg>

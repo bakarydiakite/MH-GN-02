@@ -1,5 +1,4 @@
-import { IsEmail, IsNotEmpty, IsOptional, IsString, MinLength, IsEnum } from 'class-validator';
-import { UserRole } from '@prisma/client';
+import { IsEmail, IsNotEmpty, IsOptional, IsString, MinLength } from 'class-validator';
 
 export class LoginDto {
   @IsString()
@@ -12,7 +11,7 @@ export class LoginDto {
 }
 
 export class RegisterDto {
-  @IsString() @IsNotEmpty() email: string;
+  @IsEmail() @IsNotEmpty() email: string;
   @IsString() @IsNotEmpty() @MinLength(6) password: string;
   @IsString() @IsNotEmpty() nom: string;
   @IsString() @IsOptional() prenom?: string;
@@ -23,6 +22,14 @@ export class RegisterDto {
   @IsString() @IsOptional() matricule?: string;
   @IsString() @IsOptional() fonction?: string;
   @IsString() @IsOptional() centerId?: string;
+}
+
+export class AdminRegisterDto {
+  @IsEmail() @IsNotEmpty() email: string;
+  @IsString() @IsNotEmpty() @MinLength(8) password: string;
+  @IsString() @IsNotEmpty() nom: string;
+  @IsString() @IsOptional() prenom?: string;
+  @IsString() @IsOptional() telephone?: string;
 }
 
 export class GoogleLoginDto {

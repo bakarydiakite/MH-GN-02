@@ -181,6 +181,8 @@ export class BirthsService {
         orderBy: { createdAt: 'desc' },
         include: {
           enfant: true,
+          blockchainTx: true,
+          acteNumerique: true,
           agent: { include: { user: { select: { nom: true, prenom: true } } } },
         },
       });
@@ -219,6 +221,8 @@ export class BirthsService {
       orderBy: { createdAt: 'desc' },
       include: {
         enfant: true,
+        blockchainTx: true,
+        acteNumerique: true,
         agent: { include: { user: { select: { nom: true, prenom: true } } } },
       },
     });
@@ -359,19 +363,81 @@ export class BirthsService {
     };
   }
 
-  async verify(iun: string) {
-    const record = await this.prisma.birthRecord.findUnique({
-      where: { identifiantUniqueNational: iun },
+  async verify(reference: string, ipAddress?: string) {
+    const normalizedReference = reference.trim();
+    const record = await this.prisma.birthRecord.findFirst({
+      where: {
+        OR: [
+          { identifiantUniqueNational: normalizedReference },
+          { numeroCertificat: normalizedReference },
+          { numeroIdentificationNational: normalizedReference },
+          { acteNumerique: { is: { numeroActe: normalizedReference } } },
+          { acteNumerique: { is: { qrCodeData: normalizedReference } } },
+        ],
+      },
       include: {
         enfant: true,
+        parents: true,
+        agent: { include: { user: { select: { nom: true, prenom: true } } } },
+        center: true,
+        acteNumerique: true,
         blockchainTx: true,
       },
     });
 
     if (!record) {
-      throw new NotFoundException('Identifiant Unique National non trouvé');
+      await this.prisma.verification.create({
+        data: {
+          moyen: 'REFERENCE',
+          valeurRecherchee: normalizedReference,
+          resultat: 'INTROUVABLE',
+          adresseIp: ipAddress,
+        },
+      });
+
+      return {
+        valid: false,
+        status: 'INTROUVABLE',
+        reference: normalizedReference,
+        message: 'Aucun acte de naissance ne correspond a cette reference',
+      };
     }
 
-    return record;
+    const isValidated = record.statut === BirthStatus.VALIDE;
+    const blockchainVerified =
+      Boolean(record.hashBlockchain) &&
+      Boolean(record.blockchainTx?.txHash) &&
+      record.blockchainTx?.statut !== 'ECHEC';
+
+    await this.prisma.verification.create({
+      data: {
+        naissanceId: record.id,
+        moyen: 'REFERENCE',
+        valeurRecherchee: normalizedReference,
+        resultat: isValidated ? 'VERIFIE' : 'NON_VALIDE',
+        adresseIp: ipAddress,
+      },
+    });
+
+    return {
+      valid: isValidated,
+      status: isValidated ? 'VERIFIE' : 'NON_VALIDE',
+      blockchainVerified,
+      reference: normalizedReference,
+      record: {
+        id: record.id,
+        statut: record.statut,
+        identifiantUniqueNational: record.identifiantUniqueNational,
+        numeroCertificat: record.numeroCertificat,
+        numeroActe: record.acteNumerique?.numeroActe,
+        dateValidation: record.dateValidation,
+        enfant: record.enfant,
+        parents: record.parents,
+        centre: record.center,
+        agent: record.agent,
+        hashBlockchain: record.hashBlockchain,
+        blockchainTx: record.blockchainTx,
+      },
+    };
   }
 }

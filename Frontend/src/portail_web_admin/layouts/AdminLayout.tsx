@@ -1,9 +1,12 @@
 import Sidebar from '../components/Sidebar';
-import { Bell, Search, Settings, Grid } from 'lucide-react';
-import { Outlet, useLocation } from 'react-router-dom';
+import { Bell, Grid, LogOut, Search, Settings } from 'lucide-react';
+import { Outlet, useLocation, useNavigate } from 'react-router-dom';
+import { authService } from '../../services/api';
 
 export default function AdminLayout() {
   const location = useLocation();
+  const navigate = useNavigate();
+  const user = authService.getUser();
   
   const getPageTitle = () => {
     switch(location.pathname) {
@@ -75,6 +78,21 @@ export default function AdminLayout() {
               </button>
               <button style={{ border: 'none', background: 'transparent', cursor: 'pointer', color: '#64748B' }}>
                 <Grid size={22} />
+              </button>
+              <div style={{ height: 28, width: 1, background: '#E2E8F0' }} />
+              <div style={{ textAlign: 'right' }}>
+                <p style={{ margin: 0, fontSize: 13, fontWeight: 700, color: '#1E293B' }}>{user?.prenom} {user?.nom}</p>
+                <p style={{ margin: 0, fontSize: 11, color: '#64748B' }}>{user?.role}</p>
+              </div>
+              <button
+                onClick={() => {
+                  authService.logout();
+                  navigate('/admin/login', { replace: true });
+                }}
+                title="Se déconnecter"
+                style={{ border: '1px solid #E2E8F0', background: '#fff', cursor: 'pointer', color: '#64748B', width: 40, height: 40, borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+              >
+                <LogOut size={18} />
               </button>
             </div>
           </div>

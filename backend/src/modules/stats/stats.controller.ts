@@ -9,11 +9,10 @@ import { UserRole } from '@prisma/client';
 export class StatsController {
   constructor(private readonly statsService: StatsService) {}
 
-  // @UseGuards(JwtAuthGuard, RolesGuard)
-  // @Roles(UserRole.ADMINISTRATEUR, UserRole.SUPERVISEUR)
-  // @UseGuards(JwtAuthGuard) // Désactivé pour la démo
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.ADMINISTRATEUR, UserRole.SUPERVISEUR, UserRole.VERIFICATEUR)
   @Get('dashboard')
   getDashboardStats(@Request() req: any) {
-    return this.statsService.getDashboardStats(null); // null pour userId (pas d'auth)
+    return this.statsService.getDashboardStats(req.user.userId);
   }
 }

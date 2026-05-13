@@ -16,15 +16,15 @@ export class BirthsController {
     return this.birthsService.create(req.user.userId, dto);
   }
 
-  // @UseGuards(JwtAuthGuard) // Désactivé pour la démo
+  @UseGuards(JwtAuthGuard)
   @Get()
   findAll(@Request() req: any, @Query() filters: any) {
-    return this.birthsService.findAll({ ...filters, userId: null }); // null pour userId (pas d'auth)
+    return this.birthsService.findAll({ ...filters, userId: req.user.userId });
   }
 
-  @Get('verify/:iun')
-  verify(@Param('iun') iun: string) {
-    return this.birthsService.verify(iun);
+  @Get('verify/:reference')
+  verify(@Param('reference') reference: string, @Request() req: any) {
+    return this.birthsService.verify(reference, req.ip);
   }
 
   @UseGuards(JwtAuthGuard)
@@ -33,22 +33,21 @@ export class BirthsController {
     return this.birthsService.linkChildToUser(req.user.userId, iun);
   }
 
-  // @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard)
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.birthsService.findOne(id);
   }
 
-  // @UseGuards(JwtAuthGuard, RolesGuard)
-  // @Roles(UserRole.SUPERVISEUR, UserRole.ADMINISTRATEUR)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.SUPERVISEUR, UserRole.ADMINISTRATEUR)
   @Post(':id/validate')
   validate(@Param('id') id: string, @Request() req: any) {
-    // Note: on utilise un ID temporaire puisqu'il n'y a plus de req.user
-    return this.birthsService.validate(id, 'admin-id-test');
+    return this.birthsService.validate(id, req.user.userId);
   }
 
-  // @UseGuards(JwtAuthGuard, RolesGuard)
-  // @Roles(UserRole.SUPERVISEUR, UserRole.ADMINISTRATEUR)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.SUPERVISEUR, UserRole.ADMINISTRATEUR)
   @Post(':id/reject')
   reject(@Param('id') id: string, @Request() req: any, @Body() dto: ValidateBirthDto) {
     return this.birthsService.reject(id, req.user.userId, dto);

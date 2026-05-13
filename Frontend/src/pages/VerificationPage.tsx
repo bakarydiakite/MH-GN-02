@@ -5,24 +5,22 @@ import {
   ShieldCheck, Download, 
   ArrowRight, Shield, Lock, Server
 } from 'lucide-react';
+import { apiService } from '../services/api';
 
 export default function VerificationPage() {
   const [activeTab, setActiveTab] = useState<'numero' | 'qr'>('numero');
-  const [inputValue, setInputValue] = useState('NC-2026-00847');
+  const [inputValue, setInputValue] = useState('');
   const [showResult, setShowResult] = useState(false);
   const [isScanning, setIsScanning] = useState(false);
   const [isCameraActive, setIsCameraActive] = useState(false);
+  const [verificationResult, setVerificationResult] = useState<any | null>(null);
+  const [error, setError] = useState('');
   
   const videoRef = useRef<HTMLVideoElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
 
-  // Initial load simulation
   useEffect(() => {
-    const timer = setTimeout(() => {
-      if (activeTab === 'numero') setShowResult(true);
-    }, 800);
     return () => {
-      clearTimeout(timer);
       stopCamera();
     };
   }, []);
@@ -59,17 +57,23 @@ export default function VerificationPage() {
     }
   };
 
-  const handleVerify = () => {
+  const handleVerify = async () => {
     if (!inputValue.trim() && activeTab === 'numero') return;
     
     setShowResult(false);
     setIsScanning(true);
+    setError('');
+    setVerificationResult(null);
     
-    // Simulate Blockchain Verification
-    setTimeout(() => {
+    try {
+      const data = await apiService.verifyBirth(inputValue.trim());
+      setVerificationResult(data);
       setIsScanning(false);
       setShowResult(true);
-    }, 2000);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Verification impossible');
+      setIsScanning(false);
+    }
   };
 
   return (
@@ -142,6 +146,8 @@ export default function VerificationPage() {
                     setActiveTab(tab); 
                     setShowResult(false); 
                     setIsScanning(false);
+                    setError('');
+                    setVerificationResult(null);
                     stopCamera();
                   }}
                   style={{
@@ -203,8 +209,8 @@ export default function VerificationPage() {
                       <input
                         type="text"
                         value={inputValue}
-                        onChange={(e) => { setInputValue(e.target.value.toUpperCase()); setShowResult(false); }}
-                        placeholder="Ex: NC-2026-00847"
+                        onChange={(e) => { setInputValue(e.target.value.toUpperCase()); setShowResult(false); setError(''); }}
+                        placeholder="Ex: GN-2026-ABC123"
                         style={{
                           flex: 1,
                           border: '2px solid #E5E7EB',
@@ -241,6 +247,12 @@ export default function VerificationPage() {
                       </button>
                     </div>
 
+                    {error && (
+                      <div style={{ background: '#FEF2F2', color: '#B91C1C', border: '1px solid #FECACA', borderRadius: 14, padding: '14px 18px', fontWeight: 700, marginTop: 10 }}>
+                        {error}
+                      </div>
+                    )}
+
                     {showResult && (
                       <motion.div
                         initial={{ opacity: 0, scale: 0.95 }}
@@ -260,10 +272,14 @@ export default function VerificationPage() {
                               <ShieldCheck size={32} />
                             </div>
                             <div>
-                              <p style={{ fontWeight: 900, fontSize: 26, color: '#0D7A5F', margin: 0 }}>Acte Authentique</p>
+                              <p style={{ fontWeight: 900, fontSize: 26, color: verificationResult?.valid ? '#0D7A5F' : '#B45309', margin: 0 }}>
+                                {verificationResult?.valid ? 'Acte Authentique' : 'Acte non validé'}
+                              </p>
                               <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                                 <div style={{ width: 8, height: 8, borderRadius: '50%', background: '#10B981' }} />
-                                <p style={{ fontSize: 13, color: '#0D7A5F', fontWeight: 600, margin: 0 }}>Vérification blockchain réussie</p>
+                                <p style={{ fontSize: 13, color: '#0D7A5F', fontWeight: 600, margin: 0 }}>
+                                  {verificationResult?.blockchainVerified ? 'Vérification blockchain réussie' : 'Référence trouvée, preuve blockchain non confirmée'}
+                                </p>
                               </div>
                             </div>
                           </div>
@@ -272,12 +288,15 @@ export default function VerificationPage() {
                         <div style={{ padding: '40px' }}>
                           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '32px 48px' }}>
                             {[
-                              { label: 'Identité de l\'enfant', value: 'Fatoumata Diallo' },
-                              { label: 'Identité de la mère', value: 'Mariama Diallo' },
-                              { label: 'Lieu de naissance', value: 'Maternité de Kindia' },
-                              { label: 'Date d\'émission', value: '15 Janvier 2026' },
-                              { label: 'Numéro d\'enregistrement', value: 'REF-2026-X89' },
-                              { label: 'Statut Civil', value: 'Enregistré' },
+                              { label: 'Identité de l\'enfant', value: verificationResult?.record?.enfant ? `${verificationResult.record.enfant.prenoms} ${verificationResult.record.enfant.nom}` : '-' },
+                              { label: 'Identité de la mère', value: (() => {
+                                const mother = verificationResult?.record?.parents?.find((parent: any) => parent.type === 'MERE');
+                                return mother ? `${mother.prenom || ''} ${mother.nom}`.trim() : '-';
+                              })() },
+                              { label: 'Lieu de naissance', value: verificationResult?.record?.enfant?.lieuNaissanceLibelle || '-' },
+                              { label: 'Date de naissance', value: verificationResult?.record?.enfant?.dateNaissance ? new Date(verificationResult.record.enfant.dateNaissance).toLocaleDateString('fr-FR') : '-' },
+                              { label: 'Numéro d\'enregistrement', value: verificationResult?.record?.identifiantUniqueNational || verificationResult?.reference || '-' },
+                              { label: 'Statut Civil', value: verificationResult?.record?.statut || verificationResult?.status || '-' },
                             ].map((row, i) => (
                               <div key={i}>
                                 <span style={{ display: 'block', fontSize: 12, fontWeight: 700, color: '#9CA3AF', marginBottom: 4, textTransform: 'uppercase' }}>{row.label}</span>
@@ -292,7 +311,11 @@ export default function VerificationPage() {
                                 </div>
                                 <div>
                                    <span style={{ display: 'block', fontSize: 11, fontWeight: 700, color: '#9CA3AF' }}>PREUVE BLOCKCHAIN (TX HASH)</span>
-                                   <span style={{ fontFamily: 'monospace', fontSize: 14, color: '#111827', fontWeight: 600 }}>0x3a7f...d92e</span>
+                                   <span style={{ fontFamily: 'monospace', fontSize: 14, color: '#111827', fontWeight: 600 }}>
+                                    {verificationResult?.record?.blockchainTx?.txHash
+                                      ? `${verificationResult.record.blockchainTx.txHash.slice(0, 10)}...${verificationResult.record.blockchainTx.txHash.slice(-6)}`
+                                      : 'Non disponible'}
+                                   </span>
                                 </div>
                              </div>
                              <button style={{ background: '#111827', color: '#fff', border: 'none', borderRadius: 12, padding: '12px 24px', fontWeight: 700, fontSize: 14, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 10 }}>

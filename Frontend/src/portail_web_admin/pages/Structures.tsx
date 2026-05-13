@@ -9,8 +9,7 @@ import {
   MoreVertical, 
   Edit2, 
   Building, 
-  ShieldCheck, 
-  MapPin
+  ShieldCheck
 } from 'lucide-react';
 
 const stats = [

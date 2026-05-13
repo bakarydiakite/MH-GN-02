@@ -7,6 +7,12 @@
   "license": "UNLICENSED",
   "scripts": {
     "build": "npx prisma generate && nest build",
+    "db:up": "docker compose up -d",
+    "db:down": "docker compose down",
+    "db:logs": "docker compose logs -f postgres",
+    "db:push": "npx prisma db push",
+    "db:studio": "npx prisma studio",
+    "dev:docker": "npm run db:up && npm run db:push && npm run start:dev",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
     "start": "nest start",
     "start:dev": "nest start --watch",
